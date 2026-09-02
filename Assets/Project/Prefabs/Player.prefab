@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 561252117581980652}
   - component: {fileID: 597999142094657588}
   - component: {fileID: 2782373472721974930}
+  - component: {fileID: 2490932771942793091}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -229,11 +230,35 @@ MonoBehaviour:
     m_ActionId: ce32a3f9-b927-40ec-8f6d-d0cd98ac3623
     m_ActionName: 'Gameplay/Aim[/Mouse/position]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 597999142094657588}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnCastSlot1
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: c79dbd2f-6697-47cc-8fdf-3ed2983b47ab
     m_ActionName: 'Gameplay/CastSlot1[/Mouse/leftButton]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 597999142094657588}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnCastSlot2
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: f77515a4-f999-4633-b55b-c4f5bc793576
     m_ActionName: 'Gameplay/CastSlot2[/Mouse/rightButton]'
   - m_PersistentCalls:
@@ -258,8 +283,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 5
-  projectilePrefab: {fileID: 0}
-  firePoint: {fileID: 0}
+  spellCaster: {fileID: 2490932771942793091}
 --- !u!114 &2782373472721974930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -273,6 +297,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 10
+--- !u!114 &2490932771942793091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3f130450e2dbaa47a9d79590503b870, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpellCaster
+  availableSpells:
+  - {fileID: 11400000, guid: dad5de8e1ee84f9479215fb87cacdea5, type: 2}
+  - {fileID: 11400000, guid: 2c56c5ab0afdfe8418588fe4ab55fed7, type: 2}
+  - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
+  availableCombos:
+  - {fileID: 11400000, guid: e50d8a14a6bb507448c1c766f494b07d, type: 2}
+  - {fileID: 11400000, guid: 6e94ebb45d3831c47aa5cdb253074bb4, type: 2}
+  - {fileID: 11400000, guid: 130f15fbe6accec47a44b5676c117b52, type: 2}
+  firePoint: {fileID: 2488860297175091185}
 --- !u!1 &7570200876987704720
 GameObject:
   m_ObjectHideFlags: 0

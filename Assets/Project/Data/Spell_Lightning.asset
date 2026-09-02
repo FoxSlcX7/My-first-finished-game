@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f48ac1d504e3c4249b4601f6eeb6dcb5, type: 3}
+  m_Name: Spell_Lightning
+  m_EditorClassIdentifier: Assembly-CSharp::SpellSO
+  spellName: 
+  element: 2
+  icon: {fileID: 21300000, guid: 2467fd7f0af6c4e42a5ff3cdcb943bef, type: 3}
+  projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
+  projectileSpeed: 10
+  lifetime: 3
+  damage: 1
+  projectileColor: {r: 1, g: 0.95786846, b: 0, a: 1}

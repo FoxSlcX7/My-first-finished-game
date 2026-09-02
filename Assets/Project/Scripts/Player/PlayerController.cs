@@ -6,8 +6,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private GameObject projectilePrefab;
-    [SerializeField] private Transform firePoint;
+    [SerializeField] private SpellCaster spellCaster;
 
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
@@ -36,14 +35,17 @@ public class PlayerController : MonoBehaviour
 
     public void OnCastSlot1(InputAction.CallbackContext context)
     {
-        if (context.started && projectilePrefab != null)
+        if (context.started)
         {
-            Projectile projectile = PoolManager.Instance.GetProjectile();
-            projectile.transform.position = firePoint.position;
-            projectile.transform.rotation = Quaternion.identity;
+            spellCaster?.CastSlot1();
+        }
+    }
 
-            Vector2 direction = transform.right;
-            projectile.Init(direction);
+    public void OnCastSlot2(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            spellCaster?.CastSlot2();
         }
     }
 
