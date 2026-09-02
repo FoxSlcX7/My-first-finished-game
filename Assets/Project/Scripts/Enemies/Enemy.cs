@@ -4,9 +4,12 @@ public class Enemy : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private int maxHealth = 3;
+    [SerializeField] private int contactDamage = 1;
+    [SerializeField] private float damageCooldown = 1f;
 
     private Transform _player;
     private int _currentHealth;
+    private float _lastDamageTime;
 
     private void Start()
     {
@@ -31,6 +34,30 @@ public class Enemy : MonoBehaviour
         {
             Die();
         }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            TryDealDamage(collision.gameObject);
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            TryDealDamage(collision.gameObject);
+        }
+    }
+
+    private void TryDealDamage(GameObject target)
+    {
+        if (Time.time - _lastDamageTime < damageCooldown) return;
+
+        target.GetComponent<Health>()?.TakeDamage(contactDamage);
+        _lastDamageTime = Time.time;
     }
 
     private void Die()
