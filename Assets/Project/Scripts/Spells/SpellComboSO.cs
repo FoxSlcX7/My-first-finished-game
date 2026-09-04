@@ -6,6 +6,9 @@ public class SpellComboSO : ScriptableObject
     public ElementType elementA;
     public ElementType elementB;
 
+    [Header("Cooldown")]
+    public float cooldown = 1f;
+
     [Header("Result")]
     public string comboName;
     public Sprite icon;

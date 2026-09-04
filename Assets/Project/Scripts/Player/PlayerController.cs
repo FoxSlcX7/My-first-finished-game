@@ -20,6 +20,11 @@ public class PlayerController : MonoBehaviour
         _mainCamera = Camera.main;
     }
 
+    private void Start()
+    {
+        GameManager.Instance?.RegisterPlayer(transform);
+    }
+
     // Получаем вектор движения из Input System (WASD / стрелки)
     public void OnMove(InputAction.CallbackContext context)
     {

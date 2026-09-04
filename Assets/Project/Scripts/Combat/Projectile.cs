@@ -20,15 +20,16 @@ public class Projectile : MonoBehaviour
         _timer = 0f;
     }
 
-    public void SetDamage(int damage)
+    public void SetStats(float newSpeed, float newLifetime, int newDamage)
     {
-        _damage = damage;
+        speed = newSpeed;
+        lifetime = newLifetime;
+        _damage = newDamage;
     }
 
     private void Update()
     {
         transform.position += (Vector3)(_direction * speed * Time.deltaTime);
-
         _timer += Time.deltaTime;
         if (_timer >= lifetime)
         {
@@ -41,6 +42,10 @@ public class Projectile : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             other.GetComponent<Health>()?.TakeDamage(_damage);
+
+            Knockback kb = other.GetComponent<Knockback>();
+            if (kb != null) kb.Apply(_direction);
+
             ReturnToPool();
         }
     }

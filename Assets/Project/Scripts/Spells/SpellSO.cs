@@ -17,4 +17,7 @@ public class SpellSO : ScriptableObject
 
     [Header("Visual")]
     public Color projectileColor = Color.white;
+
+    [Header("Cooldown")]
+    public float cooldown = 0.5f;
 }

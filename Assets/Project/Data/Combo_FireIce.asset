@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellComboSO
   elementA: 0
   elementB: 1
+  cooldown: 1.8
   comboName: SteamBlast
   icon: {fileID: 21300000, guid: 4409646a5d92cb24090a1f2908152a91, type: 3}
   projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
-  projectileSpeed: 12
-  lifetime: 3
-  damage: 3
+  projectileSpeed: 13
+  lifetime: 2
+  damage: 40
   projectileColor: {r: 1, g: 0, b: 0.8630773, a: 1}

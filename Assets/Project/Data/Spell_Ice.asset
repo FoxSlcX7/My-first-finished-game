@@ -17,6 +17,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: ae2a72439316c2848b28cd3af4c774c4, type: 3}
   projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
   projectileSpeed: 10
-  lifetime: 3
-  damage: 1
+  lifetime: 2
+  damage: 15
   projectileColor: {r: 0, g: 0.9401281, b: 1, a: 1}
+  cooldown: 0.4

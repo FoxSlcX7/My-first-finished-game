@@ -9,35 +9,57 @@ public class SpellCaster : MonoBehaviour
     private SpellSO _slotA;
     private SpellSO _slotB;
 
+    private float _slotACooldown;
+    private float _slotBCooldown;
+    private float _comboCooldown;
+
     private void Start()
     {
         _slotA = availableSpells[0];
         _slotB = availableSpells[1];
     }
 
+    private void Update()
+    {
+        // Уменьшаем таймеры каждый кадр
+        _slotACooldown -= Time.deltaTime;
+        _slotBCooldown -= Time.deltaTime;
+        _comboCooldown -= Time.deltaTime;
+    }
+
     public void CastSlot1()
     {
-        Cast(_slotA);
+        if (_slotACooldown > 0f) return;
+
+        SpellComboSO combo = FindCombo(_slotA, _slotB);
+        if (combo != null)
+        {
+            if (_comboCooldown > 0f) return;
+            _comboCooldown = combo.cooldown;
+            CastCombo(combo);
+        }
+        else if (_slotA != null)
+        {
+            _slotACooldown = _slotA.cooldown;
+            CastBaseSpell(_slotA);
+        }
     }
 
     public void CastSlot2()
     {
-        Cast(_slotB);
-    }
-
-    private void Cast(SpellSO spell)
-    {
-        if (spell == null) return;
+        if (_slotBCooldown > 0f) return;
 
         SpellComboSO combo = FindCombo(_slotA, _slotB);
-
         if (combo != null)
         {
+            if (_comboCooldown > 0f) return;
+            _comboCooldown = combo.cooldown;
             CastCombo(combo);
         }
-        else
+        else if (_slotB != null)
         {
-            CastBaseSpell(spell);
+            _slotBCooldown = _slotB.cooldown;
+            CastBaseSpell(_slotB);
         }
     }
 
@@ -48,7 +70,7 @@ public class SpellCaster : MonoBehaviour
         projectile.transform.rotation = firePoint.rotation;
 
         projectile.Init(firePoint.right);
-        projectile.SetDamage(spell.damage);
+        projectile.SetStats(spell.projectileSpeed, spell.lifetime, spell.damage);
 
         SpriteRenderer sr = projectile.GetComponent<SpriteRenderer>();
         if (sr != null)
@@ -68,7 +90,7 @@ public class SpellCaster : MonoBehaviour
         projectile.transform.rotation = firePoint.rotation;
 
         projectile.Init(firePoint.right);
-        projectile.SetDamage(combo.damage);
+        projectile.SetStats(combo.projectileSpeed, combo.lifetime, combo.damage);
 
         SpriteRenderer sr = projectile.GetComponent<SpriteRenderer>();
         if (sr != null)

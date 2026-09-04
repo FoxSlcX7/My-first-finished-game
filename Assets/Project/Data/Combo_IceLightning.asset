@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellComboSO
   elementA: 1
   elementB: 2
+  cooldown: 1.5
   comboName: LightGlobe
   icon: {fileID: 21300000, guid: 3c04d3c9e41398348bb1dcebd2baa2ae, type: 3}
   projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
-  projectileSpeed: 12
-  lifetime: 3
-  damage: 3
+  projectileSpeed: 14
+  lifetime: 2.5
+  damage: 35
   projectileColor: {r: 0, g: 1, b: 0.13166791, a: 1}

@@ -13,7 +13,7 @@ public class SpellPickupSpawner : MonoBehaviour
 
     private void Start()
     {
-        _player = GameObject.FindWithTag("Player")?.transform;
+        _player = GameManager.Instance?.PlayerTransform;
     }
 
     private void Update()

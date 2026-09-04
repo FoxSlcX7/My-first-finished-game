@@ -9,6 +9,7 @@ public class Health : MonoBehaviour
     public int CurrentHealth { get; private set; }
     public event Action OnDeath;
     public event Action<int> OnHealthChanged;
+    public event Action<int> OnDamaged; // int = полученный урон
 
     private void Awake()
     {
@@ -18,6 +19,7 @@ public class Health : MonoBehaviour
     public void TakeDamage(int damage)
     {
         CurrentHealth -= damage;
+        OnDamaged?.Invoke(damage);
         OnHealthChanged?.Invoke(CurrentHealth);
 
         if (CurrentHealth <= 0)

@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverPanel;
 
     private bool _isGameOver;
+    private Transform _playerTransform;
 
     private void Awake()
     {
@@ -31,6 +32,26 @@ public class GameManager : MonoBehaviour
         {
             gameOverPanel.SetActive(true);
         }
+    }
+
+    public Transform PlayerTransform
+    {
+        get
+        {
+            if (_playerTransform == null)
+            {
+                var player = GameObject.FindWithTag("Player");
+                if (player != null)
+                    _playerTransform = player.transform;
+            }
+            return _playerTransform;
+        }
+        private set => _playerTransform = value;
+    }
+
+    public void RegisterPlayer(Transform player)
+    {
+        _playerTransform = player;
     }
 
     public void Restart()

@@ -16,6 +16,8 @@ GameObject:
   - component: {fileID: 597999142094657588}
   - component: {fileID: 2782373472721974930}
   - component: {fileID: 2490932771942793091}
+  - component: {fileID: -6254501965126140923}
+  - component: {fileID: -4151313745473855970}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -84,8 +86,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1888257569
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
@@ -282,7 +284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4811a86103f38d646b6a88cb4ed75c7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 5
+  moveSpeed: 6
   spellCaster: {fileID: 2490932771942793091}
 --- !u!114 &2782373472721974930
 MonoBehaviour:
@@ -296,7 +298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 787cc266be83c4b43b7e36314c39b8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 10
+  maxHealth: 100
 --- !u!114 &2490932771942793091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,6 +320,33 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6e94ebb45d3831c47aa5cdb253074bb4, type: 2}
   - {fileID: 11400000, guid: 130f15fbe6accec47a44b5676c117b52, type: 2}
   firePoint: {fileID: 2488860297175091185}
+--- !u!114 &-6254501965126140923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Knockback
+  force: 8
+  duration: 0.12
+--- !u!114 &-4151313745473855970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfa281931c587fa42be39157db486a69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageFeedback
+  screenShake: {fileID: 6153880410625965724, guid: bf321a1b8792f8d419a6f79638cb812c, type: 3}
 --- !u!1 &7570200876987704720
 GameObject:
   m_ObjectHideFlags: 0

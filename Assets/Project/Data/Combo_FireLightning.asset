@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellComboSO
   elementA: 0
   elementB: 2
+  cooldown: 2
   comboName: LagunaBlade
   icon: {fileID: 21300000, guid: 57fddcef572254749ad949b7a07b3e07, type: 3}
   projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
-  projectileSpeed: 12
-  lifetime: 3
-  damage: 3
+  projectileSpeed: 15
+  lifetime: 1.8
+  damage: 45
   projectileColor: {r: 1, g: 0.3007531, b: 0, a: 1}
