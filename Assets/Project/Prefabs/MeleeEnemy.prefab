@@ -157,8 +157,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_LinearDamping: 6
+  m_AngularDamping: 0
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -167,9 +167,9 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &3565595830000533452
 MonoBehaviour:
@@ -184,6 +184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   moveSpeed: 3.5
+  acceleration: 15
   contactDamage: 12
   damageCooldown: 1.2
 --- !u!114 &2149604650436275400
@@ -225,5 +226,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Knockback
-  force: 6
+  force: 20
   duration: 0.12

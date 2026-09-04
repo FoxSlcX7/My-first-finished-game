@@ -4,6 +4,7 @@ using UnityEngine;
 public class MeleeEnemy : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 3.5f;
+    [SerializeField] private float acceleration = 15f; // сила ускорения
     [SerializeField] private int contactDamage = 12;
     [SerializeField] private float damageCooldown = 1.2f;
 
@@ -14,6 +15,9 @@ public class MeleeEnemy : MonoBehaviour
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+        _rb.linearDamping = 4f; // чтобы не скользил
     }
 
     private void Start()
@@ -26,23 +30,22 @@ public class MeleeEnemy : MonoBehaviour
         if (_player == null) return;
 
         Vector2 direction = ((Vector2)_player.position - (Vector2)transform.position).normalized;
-        _rb.linearVelocity = direction * moveSpeed;
+        Vector2 targetVelocity = direction * moveSpeed;
+        Vector2 velocityChange = targetVelocity - _rb.linearVelocity;
+        _rb.AddForce(velocityChange * acceleration, ForceMode2D.Force);
     }
 
+    // OnCollisionEnter/Stay без изменений (как было)
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
-        {
             TryDealDamage(collision.gameObject);
-        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
-        {
             TryDealDamage(collision.gameObject);
-        }
     }
 
     private void TryDealDamage(GameObject target)

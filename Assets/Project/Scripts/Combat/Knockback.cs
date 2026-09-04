@@ -2,24 +2,27 @@ using UnityEngine;
 
 public class Knockback : MonoBehaviour
 {
-    [SerializeField] private float force = 8f;
-    [SerializeField] private float duration = 0.12f;
+    [SerializeField] private float force = 15f;
+    [SerializeField] private float duration = 0.15f;
 
-    private Vector2 _direction;
+    private Rigidbody2D _rb;
     private float _timer;
+
+    private void Awake()
+    {
+        _rb = GetComponent<Rigidbody2D>();
+    }
 
     public void Apply(Vector2 direction)
     {
-        _direction = direction.normalized;
+        if (_rb == null) return;
+        _rb.AddForce(direction.normalized * force, ForceMode2D.Impulse);
         _timer = duration;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
-        if (_timer > 0f)
-        {
-            transform.position += (Vector3)(_direction * force * Time.deltaTime);
-            _timer -= Time.deltaTime;
-        }
+        if (_timer > 0)
+            _timer -= Time.fixedDeltaTime;
     }
 }

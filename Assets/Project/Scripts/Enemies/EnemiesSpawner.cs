@@ -11,6 +11,8 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 5f;
     [SerializeField] private int maxEnemies = 15;
     [SerializeField] private float minSpawnDistanceFromPlayer = 8f;
+    [SerializeField] private float spawnCheckRadius = 0.4f;
+    [SerializeField] private LayerMask wallLayerMask;
 
     private float _timer;
     private int _activeEnemies;
@@ -18,7 +20,6 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
-        // Даём MapGenerator время сгенерировать карту в его Start()
         Invoke(nameof(CacheSpawnPoints), 0.15f);
     }
 
@@ -29,7 +30,6 @@ public class EnemySpawner : MonoBehaviour
             Debug.LogError("EnemySpawner: не назначен MapGenerator!");
             return;
         }
-
         _validSpawnPoints = mapGenerator.FloorPositions.ToList();
         Debug.Log($"Спавн-точек загружено: {_validSpawnPoints.Count}");
     }
@@ -79,20 +79,27 @@ public class EnemySpawner : MonoBehaviour
         Transform player = GameManager.Instance?.PlayerTransform;
         Vector2 playerPos = player != null ? player.position : Vector2.zero;
 
-        // 30 попыток найти точку подальше от игрока
         for (int i = 0; i < 30; i++)
         {
             Vector2Int randomPoint = _validSpawnPoints[Random.Range(0, _validSpawnPoints.Count)];
-            Vector2 worldPos = new Vector2(randomPoint.x + 0.5f, randomPoint.y + 0.5f); // центр тайла
+            Vector2 worldPos = new Vector2(randomPoint.x + 0.5f, randomPoint.y + 0.5f);
 
-            if (player == null) return worldPos;
+            if (player != null)
+            {
+                float dist = Vector2.Distance(worldPos, playerPos);
+                if (dist < minSpawnDistanceFromPlayer) continue;
+            }
 
-            float dist = Vector2.Distance(worldPos, playerPos);
-            if (dist >= minSpawnDistanceFromPlayer)
+            if (IsPositionFree(worldPos))
                 return worldPos;
         }
-
         return null;
+    }
+
+    private bool IsPositionFree(Vector2 position)
+    {
+        Collider2D hit = Physics2D.OverlapCircle(position, spawnCheckRadius, wallLayerMask);
+        return hit == null;
     }
 
     private void HandleEnemyDeath()

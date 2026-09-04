@@ -112,8 +112,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_LinearDamping: 6
+  m_AngularDamping: 0
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -122,9 +122,9 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &7888809225841890294
 BoxCollider2D:
@@ -198,6 +198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangedEnemy
   moveSpeed: 2.5
+  acceleration: 12
   preferredDistance: 8
   stopDistance: 6
   shootInterval: 2.5
@@ -229,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Knockback
-  force: 8
+  force: 20
   duration: 0.12
 --- !u!1 &6237998939748434777
 GameObject:

@@ -378,6 +378,10 @@ MonoBehaviour:
   spawnInterval: 5
   maxEnemies: 15
   minSpawnDistanceFromPlayer: 8
+  spawnCheckRadius: 0.4
+  wallLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!1 &506448417
 GameObject:
   m_ObjectHideFlags: 0
@@ -389,7 +393,7 @@ GameObject:
   - component: {fileID: 506448418}
   - component: {fileID: 506448420}
   - component: {fileID: 506448419}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FloorTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1255,8 +1259,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2c56c5ab0afdfe8418588fe4ab55fed7, type: 2}
   - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
   spawnInterval: 12
-  spawnRadius: 12
-  minSpawnDistance: 3
+  minSpawnDistanceFromPlayer: 5
+  maxSpawnDistanceFromPlayer: 15
+  mapGenerator: {fileID: 1392741346}
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!4 &1629061098
 Transform:
   m_ObjectHideFlags: 0
@@ -1363,7 +1371,7 @@ GameObject:
   - component: {fileID: 1912978622}
   - component: {fileID: 1912978621}
   - component: {fileID: 1912978620}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: WallTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1420,7 +1428,7 @@ CompositeCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
+  m_GeometryType: 1
   m_GenerationType: 0
   m_EdgeRadius: 0
   m_ColliderPaths:
@@ -2248,13 +2256,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 7262148273306107343, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
-      propertyPath: m_SortingLayer
-      value: 3
+    - target: {fileID: 5379975728647524566, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
-    - target: {fileID: 7262148273306107343, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
-      propertyPath: m_SortingLayerID
-      value: -1888257569
+    - target: {fileID: 7570200876987704720, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
