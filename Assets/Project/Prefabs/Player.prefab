@@ -19,6 +19,9 @@ GameObject:
   - component: {fileID: -6254501965126140923}
   - component: {fileID: -4151313745473855970}
   - component: {fileID: -1500952299498400483}
+  - component: {fileID: -1414922584808055448}
+  - component: {fileID: 4633397544845998194}
+  - component: {fileID: -8093421831571054618}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -89,7 +92,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1888257569
   m_SortingLayer: 3
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -268,6 +271,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 6538aa2c-eadc-4e1d-9b70-766e39f66f37
     m_ActionName: 'Gameplay/Pause[/Keyboard/escape]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 597999142094657588}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnCastCombo
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 5f9442d7-52f4-4a2a-8c9b-28c982007416
+    m_ActionName: 'Gameplay/CastCombo[/Keyboard/e]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay
@@ -317,10 +336,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: dad5de8e1ee84f9479215fb87cacdea5, type: 2}
   - {fileID: 11400000, guid: 2c56c5ab0afdfe8418588fe4ab55fed7, type: 2}
   - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
-  availableCombos:
-  - {fileID: 11400000, guid: e50d8a14a6bb507448c1c766f494b07d, type: 2}
-  - {fileID: 11400000, guid: 6e94ebb45d3831c47aa5cdb253074bb4, type: 2}
-  - {fileID: 11400000, guid: 130f15fbe6accec47a44b5676c117b52, type: 2}
+  - {fileID: 11400000, guid: d223a07679df39e4ea20ac4266f5ae0b, type: 2}
+  comboDatabase: {fileID: 11400000, guid: 3484000d1c627424eb308550e8bc31e6, type: 2}
   firePoint: {fileID: 2488860297175091185}
 --- !u!114 &-6254501965126140923
 MonoBehaviour:
@@ -348,7 +365,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfa281931c587fa42be39157db486a69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageFeedback
-  screenShake: {fileID: 6153880410625965724, guid: bf321a1b8792f8d419a6f79638cb812c, type: 3}
+  screenShake: {fileID: 0}
 --- !u!114 &-1500952299498400483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,6 +380,55 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamageFlash
   flashDuration: 0.1
   flashColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &-1414922584808055448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8573f5c9521c6c9408625a6eaf49858d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComboVFXPlayer
+  ringPrefab: {fileID: 2000029830552595133, guid: f2c3db456a0dc1247973ba7aa4da4c37, type: 3}
+--- !u!95 &4633397544845998194
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b39cfb660895d2548b76fea1c98b222c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-8093421831571054618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c06cccf0ab657d4594f936accbf1c59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
+  spellCaster: {fileID: 0}
+  speedSmoothTime: 0.1
 --- !u!1 &7570200876987704720
 GameObject:
   m_ObjectHideFlags: 0

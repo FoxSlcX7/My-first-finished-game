@@ -3,68 +3,101 @@ using UnityEngine;
 public class SpellCaster : MonoBehaviour
 {
     [SerializeField] private SpellSO[] availableSpells;
-    [SerializeField] private SpellComboSO[] availableCombos;
+    [SerializeField] private ComboDatabase comboDatabase;
     [SerializeField] private Transform firePoint;
+
+    public event System.Action OnSpellCast;
+    public event System.Action<bool> OnComboReadyChanged;
 
     private SpellSO _slotA;
     private SpellSO _slotB;
-
     private float _slotACooldown;
     private float _slotBCooldown;
     private float _comboCooldown;
+    private bool _wasComboReady;
 
     private void Start()
     {
         _slotA = availableSpells[0];
         _slotB = availableSpells[1];
-
-        // Первичная отправка для UI
         GameEvents.OnSlotAChanged?.Raise(_slotA);
         GameEvents.OnSlotBChanged?.Raise(_slotB);
+        RefreshComboState();
+        _wasComboReady = IsComboReady();
     }
 
     private void Update()
     {
-        // Уменьшаем таймеры каждый кадр
-        _slotACooldown -= Time.deltaTime;
-        _slotBCooldown -= Time.deltaTime;
-        _comboCooldown -= Time.deltaTime;
+        if (_slotACooldown > 0f) _slotACooldown -= Time.deltaTime;
+        if (_slotBCooldown > 0f) _slotBCooldown -= Time.deltaTime;
+        if (_comboCooldown > 0f) _comboCooldown -= Time.deltaTime;
+
+        bool isReady = IsComboReady();
+        if (isReady != _wasComboReady)
+        {
+            _wasComboReady = isReady;
+            OnComboReadyChanged?.Invoke(isReady);
+        }
     }
 
+    // ═══════════════════════════════════════
+    // ЛКМ → всегда кастует заклинание слота A
+    // ═══════════════════════════════════════
     public void CastSlot1()
     {
-        if (_slotACooldown > 0f) return;
+        if (_slotA == null || _slotACooldown > 0f) return;
 
-        SpellComboSO combo = FindCombo(_slotA, _slotB);
-        if (combo != null)
-        {
-            if (_comboCooldown > 0f) return;
-            _comboCooldown = combo.cooldown;
-            CastCombo(combo);
-        }
-        else if (_slotA != null)
-        {
-            _slotACooldown = _slotA.cooldown;
-            CastBaseSpell(_slotA);
-        }
+        _slotACooldown = _slotA.cooldown;
+        CastBaseSpell(_slotA);
+        OnSpellCast?.Invoke();
     }
 
+    // ═══════════════════════════════════════
+    // ПКМ → всегда кастует заклинание слота B
+    // ═══════════════════════════════════════
     public void CastSlot2()
     {
-        if (_slotBCooldown > 0f) return;
+        if (_slotB == null || _slotBCooldown > 0f) return;
 
-        SpellComboSO combo = FindCombo(_slotA, _slotB);
-        if (combo != null)
-        {
-            if (_comboCooldown > 0f) return;
-            _comboCooldown = combo.cooldown;
-            CastCombo(combo);
-        }
-        else if (_slotB != null)
-        {
-            _slotBCooldown = _slotB.cooldown;
-            CastBaseSpell(_slotB);
-        }
+        _slotBCooldown = _slotB.cooldown;
+        CastBaseSpell(_slotB);
+        OnSpellCast?.Invoke();
+    }
+
+    // ═══════════════════════════════════════
+    // Space/Q → кастует комбо, если доступно
+    // ═══════════════════════════════════════
+    public void CastCombo()
+    {
+        SpellComboSO combo = GetActiveCombo();
+        if (combo == null || _comboCooldown > 0f) return;
+
+        _comboCooldown = combo.cooldown;
+        SpawnComboProjectile(combo);
+        GameEvents.OnComboCast?.Raise(combo);
+        OnSpellCast?.Invoke();
+    }
+
+    // ═══════════════════════════════════════
+    // Для UI: доступно ли комбо прямо сейчас?
+    // ═══════════════════════════════════════
+    public bool IsComboReady()
+    {
+        return GetActiveCombo() != null && _comboCooldown <= 0f;
+    }
+
+    // ═══════════════════════════════════════
+    // Внутренняя логика
+    // ═══════════════════════════════════════
+    private SpellComboSO GetActiveCombo()
+    {
+        if (comboDatabase == null || _slotA == null || _slotB == null) return null;
+        return comboDatabase.FindCombo(_slotA.element, _slotB.element);
+    }
+
+    private void RefreshComboState()
+    {
+        GameEvents.OnComboStateChanged?.Raise(GetActiveCombo());
     }
 
     private void CastBaseSpell(SpellSO spell)
@@ -77,16 +110,14 @@ public class SpellCaster : MonoBehaviour
         {
             Debug.LogWarning($"SpellCaster: у заклинания {spell.name} не назначен effect!");
         }
-
         GameEvents.OnSpellCast?.Raise(spell);
     }
 
-    private void CastCombo(SpellComboSO combo)
+    private void SpawnComboProjectile(SpellComboSO combo)
     {
         Projectile projectile = PoolManager.Instance.GetProjectile();
         projectile.transform.position = firePoint.position;
         projectile.transform.rotation = firePoint.rotation;
-
         projectile.Init(firePoint.right);
         projectile.SetStats(combo.projectileSpeed, combo.lifetime, combo.damage);
 
@@ -95,23 +126,6 @@ public class SpellCaster : MonoBehaviour
         {
             sr.color = combo.projectileColor;
         }
-
-        Debug.Log($"COMBO: {combo.name}");
-    }
-
-    private SpellComboSO FindCombo(SpellSO a, SpellSO b)
-    {
-        if (a == null || b == null) return null;
-
-        foreach (var combo in availableCombos)
-        {
-            if (combo.Matches(a.element, b.element))
-            {
-                return combo;
-            }
-        }
-
-        return null;
     }
 
     public void EquipSpell(SpellSO spell)
@@ -130,9 +144,9 @@ public class SpellCaster : MonoBehaviour
             _slotA = spell;
         }
 
-        // Сообщаем UI об изменении слотов
         GameEvents.OnSlotAChanged?.Raise(_slotA);
         GameEvents.OnSlotBChanged?.Raise(_slotB);
+        RefreshComboState();
     }
 
     public SpellSO GetSlotA() => _slotA;

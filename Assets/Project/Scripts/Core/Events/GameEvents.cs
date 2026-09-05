@@ -14,6 +14,10 @@ public static class GameEvents
     public static SpellGameEvent OnSlotAChanged;
     public static SpellGameEvent OnSlotBChanged;
 
+    // Комбо
+    public static ComboGameEvent OnComboStateChanged;
+    public static ComboGameEvent OnComboCast;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Initialize()
     {
@@ -25,6 +29,8 @@ public static class GameEvents
         OnSpellCast = Resources.Load<SpellGameEvent>("Events/OnSpellCast");
         OnSlotAChanged = Resources.Load<SpellGameEvent>("Events/OnSlotAChanged");
         OnSlotBChanged = Resources.Load<SpellGameEvent>("Events/OnSlotBChanged");
+        OnComboStateChanged = Resources.Load<ComboGameEvent>("Events/OnComboStateChanged");
+        OnComboCast = Resources.Load<ComboGameEvent>("Events/OnComboCast");
 
         Verify("OnHealthChangedEvent", OnHealthChanged);
         Verify("OnPlayerDamagedEvent", OnPlayerDamaged);
@@ -34,6 +40,8 @@ public static class GameEvents
         Verify("OnSpellCast", OnSpellCast);
         Verify("OnSlotAChanged", OnSlotAChanged);
         Verify("OnSlotBChanged", OnSlotBChanged);
+        Verify("OnComboStateChanged", OnComboStateChanged);
+        Verify("OnComboCast", OnComboCast);
 
         Debug.Log("✅ GameEvents: все события загружены");
     }

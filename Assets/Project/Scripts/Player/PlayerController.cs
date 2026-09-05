@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float acceleration = 15f; // добавим для плавности
+    [SerializeField] private float acceleration = 15f;
     [SerializeField] private SpellCaster spellCaster;
 
     private Rigidbody2D _rb;
@@ -19,7 +19,6 @@ public class PlayerController : MonoBehaviour
         _mainCamera = Camera.main;
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
-        // Установите Linear Damping в инспекторе отдельно (не в коде)
     }
 
     private void Start()
@@ -46,6 +45,11 @@ public class PlayerController : MonoBehaviour
     public void OnCastSlot2(InputAction.CallbackContext context)
     {
         if (context.started) spellCaster?.CastSlot2();
+    }
+
+    public void OnCastCombo(InputAction.CallbackContext context)
+    {
+        if (context.started) spellCaster?.CastCombo();
     }
 
     private void FixedUpdate()

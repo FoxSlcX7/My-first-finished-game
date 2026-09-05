@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellSO
   spellName: 
   element: 1
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f3ff209cd42513e4e8b745b2fc86d087, type: 3}
   projectilePrefab: {fileID: 0}
   projectileSpeed: 10
   lifetime: 0.5
