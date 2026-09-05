@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 597999142094657588}
   - component: {fileID: 2782373472721974930}
   - component: {fileID: 2490932771942793091}
-  - component: {fileID: -6254501965126140923}
   - component: {fileID: -4151313745473855970}
   - component: {fileID: -1500952299498400483}
   - component: {fileID: -1414922584808055448}
@@ -307,6 +306,8 @@ MonoBehaviour:
   moveSpeed: 6
   acceleration: 15
   spellCaster: {fileID: 2490932771942793091}
+  knockbackResistance: 0.3
+  knockbackCooldown: 0.2
 --- !u!114 &2782373472721974930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -339,20 +340,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d223a07679df39e4ea20ac4266f5ae0b, type: 2}
   comboDatabase: {fileID: 11400000, guid: 3484000d1c627424eb308550e8bc31e6, type: 2}
   firePoint: {fileID: 2488860297175091185}
---- !u!114 &-6254501965126140923
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5379975728647524566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Knockback
-  force: 20
-  duration: 0.12
 --- !u!114 &-4151313745473855970
 MonoBehaviour:
   m_ObjectHideFlags: 0

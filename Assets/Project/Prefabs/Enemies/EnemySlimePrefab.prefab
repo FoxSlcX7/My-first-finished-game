@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 8582200408433689459}
   - component: {fileID: 8843426434211922223}
   - component: {fileID: -6174453070487690009}
-  - component: {fileID: 7747832460014712258}
   m_Layer: 0
   m_Name: EnemySlimePrefab
   m_TagString: Enemy
@@ -202,20 +201,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamageFlash
   flashDuration: 0.1
   flashColor: {r: 1, g: 0, b: 0, a: 1}
---- !u!114 &7747832460014712258
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3706076364815955699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Knockback
-  force: 20
-  duration: 0.12
 --- !u!1001 &4322493987416967113
 PrefabInstance:
   m_ObjectHideFlags: 0

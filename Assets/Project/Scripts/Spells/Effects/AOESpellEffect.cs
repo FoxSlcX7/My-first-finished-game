@@ -18,7 +18,7 @@ public class AOESpellEffect : SpellEffectBase
         AOEZone aoeZone = zone.GetComponent<AOEZone>();
         if (aoeZone != null)
         {
-            aoeZone.Init(data.damage, radius, data.lifetime, data.projectileColor);
+            aoeZone.Init(data.damage, radius, data.lifetime, data.projectileColor, data.knockbackForce);
         }
     }
 }

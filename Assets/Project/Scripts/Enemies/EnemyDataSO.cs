@@ -29,4 +29,12 @@ public class EnemyDataSO : ScriptableObject
     public Sprite sprite;
     public Color color = Color.white;
     public Vector3 spriteScale = Vector3.one;
+
+    [Header("Knockback")]
+    [Tooltip("0 = отлетает полностью, 1 = иммунитет")]
+    [Range(0f, 1f)] public float knockbackResistance = 0f;
+    [Tooltip("Минимальный интервал между отбрасываниями (защита от спама)")]
+    public float knockbackCooldown = 0.15f;
+    public float knockbackStagger = 0.25f;
+    public float contactKnockbackForce = 8f;
 }

@@ -27,3 +27,5 @@ MonoBehaviour:
   sprite: {fileID: 21300016, guid: f776e2e9690501e41a2e5b81ceb440b9, type: 3}
   color: {r: 1, g: 1, b: 1, a: 1}
   spriteScale: {x: 1, y: 1, z: 1}
+  knockbackResistance: 0.3
+  knockbackCooldown: 0.15

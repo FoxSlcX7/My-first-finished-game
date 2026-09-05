@@ -8,6 +8,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float acceleration = 15f;
     [SerializeField] private SpellCaster spellCaster;
 
+    [Header("Knockback")]
+    [Range(0f, 1f)][SerializeField] private float knockbackResistance = 0.3f;
+    [SerializeField] private float knockbackCooldown = 0.2f;
+    private float _nextKnockbackTime;
+
     private Rigidbody2D _rb;
     private Vector2 _moveInput;
     private Vector2 _aimInput;
@@ -50,6 +55,20 @@ public class PlayerController : MonoBehaviour
     public void OnCastCombo(InputAction.CallbackContext context)
     {
         if (context.started) spellCaster?.CastCombo();
+    }
+
+    /// <summary>
+    /// Применяет отбрасывание к игроку (вызывается вражескими снарядами).
+    /// </summary>
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (Time.time < _nextKnockbackTime) return;
+
+        float actualForce = force * (1f - knockbackResistance);
+        if (actualForce <= 0f) return;
+
+        _rb.AddForce(direction.normalized * actualForce, ForceMode2D.Impulse);
+        _nextKnockbackTime = Time.time + knockbackCooldown;
     }
 
     private void FixedUpdate()

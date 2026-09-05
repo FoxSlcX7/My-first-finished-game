@@ -10,6 +10,7 @@ public class AttackState : IEnemyState
     public void Execute()
     {
         if (_enemy == null) return;
+        if (_enemy.IsStaggered) return;
 
         if (_enemy.DistanceToPlayer() > _enemy.Data.attackRange)
         {

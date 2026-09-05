@@ -56,7 +56,5 @@ public class MeleeEnemy : MonoBehaviour
         _lastDamageTime = Time.time;
 
         Vector2 direction = (target.transform.position - transform.position).normalized;
-        Knockback kb = target.GetComponent<Knockback>();
-        if (kb != null) kb.Apply(direction);
     }
 }

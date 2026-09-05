@@ -14,6 +14,7 @@ public class SpellSO : ScriptableObject
 
     [Header("Damage")]
     public int damage = 1;
+    public float knockbackForce = 8f;
 
     [Header("Visual")]
     public Color projectileColor = Color.white;

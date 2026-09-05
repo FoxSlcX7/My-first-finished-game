@@ -18,7 +18,9 @@ public class SpellComboSO : ScriptableObject
     public int damage = 3;
     public Color projectileColor = Color.white;
 
-    // Проверяет, подходит ли комбо под два элемента (в любом порядке)
+    [Header("Knockback")]
+    public float knockbackForce = 10f;
+
     public bool Matches(ElementType a, ElementType b)
     {
         return (a == elementA && b == elementB) || (a == elementB && b == elementA);

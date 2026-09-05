@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 3271716604281113128}
   - component: {fileID: 4814479300201373233}
   - component: {fileID: 4771309961286320946}
-  - component: {fileID: 5994710587998101230}
   m_Layer: 0
   m_Name: EnemyMagePrefab
   m_TagString: Enemy
@@ -202,20 +201,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamageFlash
   flashDuration: 0.1
   flashColor: {r: 1, g: 0, b: 0, a: 1}
---- !u!114 &5994710587998101230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8350417149623343693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ccf64ff47936ec4cbc2ef228bf24d8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Knockback
-  force: 20
-  duration: 0.12
 --- !u!1001 &3998417386103166354
 PrefabInstance:
   m_ObjectHideFlags: 0

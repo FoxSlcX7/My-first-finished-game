@@ -12,6 +12,8 @@ public class EnemyController : MonoBehaviour
     private IEnemyState _currentState;
     private float _lastDamageTime;
     private float _nextShootTime;
+    private float _nextKnockbackTime;
+    private float _staggerEndTime;
 
     // Публичные свойства для состояний
     public EnemyDataSO Data => data;
@@ -19,6 +21,7 @@ public class EnemyController : MonoBehaviour
     public Rigidbody2D Rb => _rb;
     public Transform Player => _player;
     public float LastDamageTime => _lastDamageTime;
+    public bool IsStaggered => Time.time < _staggerEndTime;
 
     private void Awake()
     {
@@ -75,6 +78,8 @@ public class EnemyController : MonoBehaviour
     public void MoveTowardsPlayer()
     {
         if (_player == null) return;
+        if (IsStaggered) return;
+
         Vector2 direction = ((Vector2)_player.position - (Vector2)transform.position).normalized;
         Vector2 targetVelocity = direction * data.moveSpeed;
         Vector2 velocityChange = targetVelocity - _rb.linearVelocity;
@@ -83,6 +88,7 @@ public class EnemyController : MonoBehaviour
 
     public void StopMovement()
     {
+        if (IsStaggered) return;
         _rb.linearVelocity = Vector2.zero;
     }
 
@@ -97,12 +103,10 @@ public class EnemyController : MonoBehaviour
             playerHealth.TakeDamage(data.contactDamage);
             _lastDamageTime = Time.time;
 
-            Knockback kb = _player.GetComponent<Knockback>();
-            if (kb != null)
-            {
-                Vector2 dir = (_player.position - transform.position).normalized;
-                kb.Apply(dir);
-            }
+            Vector2 dir = (_player.position - transform.position).normalized;
+            PlayerController pc = _player.GetComponent<PlayerController>();
+            if (pc != null)
+                pc.ApplyKnockback(dir, data.contactKnockbackForce);
         }
     }
 
@@ -111,6 +115,22 @@ public class EnemyController : MonoBehaviour
         if (Time.time < _nextShootTime) return false;
         _nextShootTime = Time.time + data.shootInterval;
         return true;
+    }
+
+    /// <summary>
+    /// Применяет отбрасывание с учётом сопротивления и кулдауна из EnemyDataSO.
+    /// </summary>
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (data == null) return;
+        if (Time.time < _nextKnockbackTime) return; // защита от частых попаданий
+
+        float actualForce = force * (1f - data.knockbackResistance);
+        if (actualForce <= 0f) return;
+
+        _rb.AddForce(direction.normalized * actualForce, ForceMode2D.Impulse);
+        _nextKnockbackTime = Time.time + data.knockbackCooldown;
+        _staggerEndTime = Time.time + data.knockbackStagger;
     }
 
     /// <summary>

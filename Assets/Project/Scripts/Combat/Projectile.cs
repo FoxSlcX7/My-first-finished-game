@@ -6,6 +6,7 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float lifetime = 3f;
 
     private int _damage = 1;
+    private float _knockbackForce = 8f; // ← ДОБАВЛЕНО
     private Vector2 _direction;
     private float _timer;
 
@@ -20,11 +21,12 @@ public class Projectile : MonoBehaviour
         _timer = 0f;
     }
 
-    public void SetStats(float newSpeed, float newLifetime, int newDamage)
+    public void SetStats(float newSpeed, float newLifetime, int newDamage, float newKnockback = 8f)
     {
         speed = newSpeed;
         lifetime = newLifetime;
         _damage = newDamage;
+        _knockbackForce = newKnockback;
     }
 
     private void Update()
@@ -43,8 +45,9 @@ public class Projectile : MonoBehaviour
         {
             other.GetComponent<Health>()?.TakeDamage(_damage);
 
-            Knockback kb = other.GetComponent<Knockback>();
-            if (kb != null) kb.Apply(_direction);
+            EnemyController enemy = other.GetComponent<EnemyController>();
+            if (enemy != null)
+                enemy.ApplyKnockback(_direction, _knockbackForce);
 
             ReturnToPool();
         }

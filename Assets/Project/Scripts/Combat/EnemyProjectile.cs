@@ -5,6 +5,7 @@ public class EnemyProjectile : MonoBehaviour
     [SerializeField] private float speed = 9f;
     [SerializeField] private float lifetime = 3f;
     [SerializeField] private int damage = 10;
+    [SerializeField] private float knockbackForce = 10f;
 
     private Vector2 _direction;
     private float _timer;
@@ -32,8 +33,9 @@ public class EnemyProjectile : MonoBehaviour
         {
             other.GetComponent<Health>()?.TakeDamage(damage);
 
-            Knockback kb = other.GetComponent<Knockback>();
-            if (kb != null) kb.Apply(_direction);
+            PlayerController pc = other.GetComponent<PlayerController>();
+            if (pc != null)
+                pc.ApplyKnockback(_direction, knockbackForce);
 
             Destroy(gameObject);
         }

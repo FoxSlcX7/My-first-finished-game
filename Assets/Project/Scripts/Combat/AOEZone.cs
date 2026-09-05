@@ -8,13 +8,15 @@ public class AOEZone : MonoBehaviour
     private float _lifetime;
     private float _timer;
     private float _targetScale;
+    private float _knockbackForce;
 
-    public void Init(int damage, float radius, float lifetime, Color color)
+    public void Init(int damage, float radius, float lifetime, Color color, float knockbackForce = 8f)
     {
         _damage = damage;
         _radius = radius;
         _lifetime = lifetime;
         _targetScale = radius * 2f;
+        _knockbackForce = knockbackForce;
 
         _sr = GetComponent<SpriteRenderer>();
         if (_sr != null)
@@ -38,11 +40,11 @@ public class AOEZone : MonoBehaviour
             {
                 health.TakeDamage(_damage);
 
-                Knockback kb = hit.GetComponent<Knockback>();
-                if (kb != null)
+                EnemyController enemy = hit.GetComponent<EnemyController>();
+                if (enemy != null)
                 {
                     Vector2 dir = ((Vector2)hit.transform.position - (Vector2)transform.position).normalized;
-                    kb.Apply(dir);
+                    enemy.ApplyKnockback(dir, _knockbackForce);
                 }
             }
         }

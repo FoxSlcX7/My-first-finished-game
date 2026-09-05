@@ -12,6 +12,7 @@ public class RangedAttackState : IEnemyState
     public void Execute()
     {
         if (_enemy == null) return;
+        if (_enemy.IsStaggered) return;
 
         // Гистерезис: выходим когда игрок ушёл на 120% от дистанции
         float exitRange = _enemy.Data.attackRange * 1.2f;
