@@ -8,28 +8,28 @@ public class DamageFlash : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
     private Color _originalColor;
     private float _flashTimer;
+    private Health _health;
 
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColor = _spriteRenderer.color;
+        _health = GetComponent<Health>();
     }
 
     private void OnEnable()
     {
-        Health health = GetComponent<Health>();
-        if (health != null)
+        if (_health != null)
         {
-            health.OnDamaged += HandleDamaged;
+            _health.OnDamaged += HandleDamaged;
         }
     }
 
     private void OnDisable()
     {
-        Health health = GetComponent<Health>();
-        if (health != null)
+        if (_health != null)
         {
-            health.OnDamaged -= HandleDamaged;
+            _health.OnDamaged -= HandleDamaged;
         }
     }
 

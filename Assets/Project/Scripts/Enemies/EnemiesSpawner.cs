@@ -23,6 +23,22 @@ public class EnemySpawner : MonoBehaviour
         Invoke(nameof(CacheSpawnPoints), 0.15f);
     }
 
+    private void OnEnable()
+    {
+        if (GameEvents.OnEnemyDied != null)
+        {
+            GameEvents.OnEnemyDied.AddListener(HandleEnemyDeath);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (GameEvents.OnEnemyDied != null)
+        {
+            GameEvents.OnEnemyDied.RemoveListener(HandleEnemyDeath);
+        }
+    }
+
     private void CacheSpawnPoints()
     {
         if (mapGenerator == null)
@@ -54,24 +70,16 @@ public class EnemySpawner : MonoBehaviour
         Vector2? spawnPos = GetRandomValidSpawnPosition();
         if (!spawnPos.HasValue) return;
 
-        Health enemyHealth = null;
-
         if (Random.value < rangedSpawnChance)
         {
-            RangedEnemy enemy = Instantiate(rangedPrefab, spawnPos.Value, Quaternion.identity);
-            enemyHealth = enemy.GetComponent<Health>();
+            Instantiate(rangedPrefab, spawnPos.Value, Quaternion.identity);
         }
         else
         {
-            MeleeEnemy enemy = Instantiate(meleePrefab, spawnPos.Value, Quaternion.identity);
-            enemyHealth = enemy.GetComponent<Health>();
+            Instantiate(meleePrefab, spawnPos.Value, Quaternion.identity);
         }
 
-        if (enemyHealth != null)
-        {
-            enemyHealth.OnDeath += HandleEnemyDeath;
-            _activeEnemies++;
-        }
+        _activeEnemies++;
     }
 
     private Vector2? GetRandomValidSpawnPosition()

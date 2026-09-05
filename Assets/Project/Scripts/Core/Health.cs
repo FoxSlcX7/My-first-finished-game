@@ -1,26 +1,42 @@
-using System;
 using UnityEngine;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] private int maxHealth = 10;
 
+    public event System.Action<int> OnDamaged;
     public int MaxHealth => maxHealth;
     public int CurrentHealth { get; private set; }
-    public event Action OnDeath;
-    public event Action<int> OnHealthChanged;
-    public event Action<int> OnDamaged; // int = полученный урон
+
+    private bool _isPlayer;
 
     private void Awake()
     {
         CurrentHealth = maxHealth;
+        _isPlayer = CompareTag("Player");
     }
-    
+
+    private void Start()
+    {
+        if (_isPlayer)
+        {
+            GameEvents.OnHealthChanged?.Raise(CurrentHealth, MaxHealth);
+        }
+    }
+
     public void TakeDamage(int damage)
     {
         CurrentHealth -= damage;
+
         OnDamaged?.Invoke(damage);
-        OnHealthChanged?.Invoke(CurrentHealth);
+
+        GameEvents.OnDamaged?.Raise(damage);
+
+        if (_isPlayer)
+        {
+            GameEvents.OnPlayerDamaged?.Raise(damage);
+            GameEvents.OnHealthChanged?.Raise(CurrentHealth, MaxHealth);
+        }
 
         if (CurrentHealth <= 0)
         {
@@ -30,11 +46,14 @@ public class Health : MonoBehaviour
 
     private void Die()
     {
-        OnDeath?.Invoke();
-
-        if (CompareTag("Player"))
+        if (_isPlayer)
         {
+            GameEvents.OnPlayerDied?.Raise();
             GameManager.Instance?.GameOver();
+        }
+        else
+        {
+            GameEvents.OnEnemyDied?.Raise();
         }
 
         Destroy(gameObject);

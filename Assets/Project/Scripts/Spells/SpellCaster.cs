@@ -17,6 +17,10 @@ public class SpellCaster : MonoBehaviour
     {
         _slotA = availableSpells[0];
         _slotB = availableSpells[1];
+
+        // Первичная отправка для UI
+        GameEvents.OnSlotAChanged?.Raise(_slotA);
+        GameEvents.OnSlotBChanged?.Raise(_slotB);
     }
 
     private void Update()
@@ -81,6 +85,8 @@ public class SpellCaster : MonoBehaviour
         {
             Debug.LogWarning("No SpriteRenderer on projectile prefab!");
         }
+
+        GameEvents.OnSpellCast?.Raise(spell);
     }
 
     private void CastCombo(SpellComboSO combo)
@@ -128,10 +134,13 @@ public class SpellCaster : MonoBehaviour
         }
         else
         {
-            // Оба слота заняты: сдвигаем (A → B, новое → A)
             _slotB = _slotA;
             _slotA = spell;
         }
+
+        // Сообщаем UI об изменении слотов
+        GameEvents.OnSlotAChanged?.Raise(_slotA);
+        GameEvents.OnSlotBChanged?.Raise(_slotB);
     }
 
     public SpellSO GetSlotA() => _slotA;

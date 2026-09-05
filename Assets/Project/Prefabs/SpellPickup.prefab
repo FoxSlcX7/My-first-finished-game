@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3769966968626386464}
   - component: {fileID: 4999522160640839241}
   - component: {fileID: 2827749293229535825}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SpellPickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79,8 +79,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1888257569
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 2467fd7f0af6c4e42a5ff3cdcb943bef, type: 3}

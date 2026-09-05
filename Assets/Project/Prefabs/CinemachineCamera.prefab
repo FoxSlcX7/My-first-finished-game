@@ -126,5 +126,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d4e9ed7f563374aa623547b4095277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScreenShake
-  defaultAmplitude: 0.6
+  defaultAmplitude: 2
   defaultDuration: 0.15

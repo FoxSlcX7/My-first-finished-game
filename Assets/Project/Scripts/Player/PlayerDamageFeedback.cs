@@ -4,26 +4,16 @@ public class PlayerDamageFeedback : MonoBehaviour
 {
     [SerializeField] private ScreenShake screenShake;
 
-    private Health _health;
-
-    private void Awake()
-    {
-        _health = GetComponent<Health>();
-    }
-
     private void OnEnable()
     {
-        if (_health != null)
-        {
-            _health.OnDamaged += HandleDamaged;
-        }
+            GameEvents.OnPlayerDamaged.AddListener(HandleDamaged);
     }
 
     private void OnDisable()
     {
-        if (_health != null)
+        if (GameEvents.OnPlayerDamaged != null)
         {
-            _health.OnDamaged -= HandleDamaged;
+            GameEvents.OnPlayerDamaged.RemoveListener(HandleDamaged);
         }
     }
 

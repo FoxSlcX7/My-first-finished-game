@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 2490932771942793091}
   - component: {fileID: -6254501965126140923}
   - component: {fileID: -4151313745473855970}
+  - component: {fileID: -1500952299498400483}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -285,6 +286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 6
+  acceleration: 15
   spellCaster: {fileID: 2490932771942793091}
 --- !u!114 &2782373472721974930
 MonoBehaviour:
@@ -298,7 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 787cc266be83c4b43b7e36314c39b8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 1000
+  maxHealth: 100
 --- !u!114 &2490932771942793091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -347,6 +349,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageFeedback
   screenShake: {fileID: 6153880410625965724, guid: bf321a1b8792f8d419a6f79638cb812c, type: 3}
+--- !u!114 &-1500952299498400483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5379975728647524566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cb622697d1f08840b610c6f02dd0e24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageFlash
+  flashDuration: 0.1
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &7570200876987704720
 GameObject:
   m_ObjectHideFlags: 0
