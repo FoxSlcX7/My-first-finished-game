@@ -1233,10 +1233,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellPickupSpawner
   pickupPrefab: {fileID: 2827749293229535825, guid: e41b4bb3dcf3a634eb53b377de2f43c3, type: 3}
   availableSpells:
-  - {fileID: 11400000, guid: dad5de8e1ee84f9479215fb87cacdea5, type: 2}
-  - {fileID: 11400000, guid: 2c56c5ab0afdfe8418588fe4ab55fed7, type: 2}
-  - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
-  spawnInterval: 12
+  - {fileID: 11400000, guid: d223a07679df39e4ea20ac4266f5ae0b, type: 2}
+  spawnInterval: 5
   minSpawnDistanceFromPlayer: 5
   maxSpawnDistanceFromPlayer: 15
   mapGenerator: {fileID: 1392741346}

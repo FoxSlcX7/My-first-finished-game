@@ -20,4 +20,8 @@ public class SpellSO : ScriptableObject
 
     [Header("Cooldown")]
     public float cooldown = 0.5f;
+
+    [Header("Spell System v2 (Strategy)")]
+    public SpellType spellType;
+    public SpellEffectBase effect;
 }

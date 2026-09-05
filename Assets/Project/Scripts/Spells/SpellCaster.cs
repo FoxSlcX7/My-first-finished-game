@@ -69,21 +69,13 @@ public class SpellCaster : MonoBehaviour
 
     private void CastBaseSpell(SpellSO spell)
     {
-        Projectile projectile = PoolManager.Instance.GetProjectile();
-        projectile.transform.position = firePoint.position;
-        projectile.transform.rotation = firePoint.rotation;
-
-        projectile.Init(firePoint.right);
-        projectile.SetStats(spell.projectileSpeed, spell.lifetime, spell.damage);
-
-        SpriteRenderer sr = projectile.GetComponent<SpriteRenderer>();
-        if (sr != null)
+        if (spell.effect != null)
         {
-            sr.color = spell.projectileColor;
+            spell.effect.Cast(firePoint.position, firePoint.right, spell);
         }
         else
         {
-            Debug.LogWarning("No SpriteRenderer on projectile prefab!");
+            Debug.LogWarning($"SpellCaster: у заклинания {spell.name} не назначен effect!");
         }
 
         GameEvents.OnSpellCast?.Raise(spell);
