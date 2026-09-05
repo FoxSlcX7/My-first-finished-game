@@ -11,21 +11,18 @@ public class ChaseState : IEnemyState
     {
         if (_enemy == null) return;
 
-        // Игрок вышел из зоны — обратно в Idle
-        if (_enemy.DistanceToPlayer() > _enemy.DetectionRange)
+        if (_enemy.DistanceToPlayer() > _enemy.Data.detectionRange)
         {
             _enemy.SetState(new IdleState());
             return;
         }
 
-        // Игрок в зоне атаки — атакуем
-        if (_enemy.DistanceToPlayer() <= _enemy.AttackRange)
+        if (_enemy.DistanceToPlayer() <= _enemy.Data.attackRange)
         {
-            _enemy.SetState(new AttackState());
+            _enemy.SetState(_enemy.GetAttackState()); // ← НОВОЕ
             return;
         }
 
-        // Бежим к игроку
         _enemy.MoveTowardsPlayer();
     }
 

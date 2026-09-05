@@ -42,14 +42,23 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Ground
+  - name: Background
+    uniqueID: 3996784011
+    locked: 0
+  - name: Floor
     uniqueID: 2193816033
+    locked: 0
+  - name: Entities
+    uniqueID: 2406709727
+    locked: 0
+  - name: Projectiles
+    uniqueID: 2935688531
     locked: 0
   - name: Walls
     uniqueID: 3796589229
     locked: 0
-  - name: Player
-    uniqueID: 2406709727
+  - name: UI
+    uniqueID: 1011656245
     locked: 0
   m_RenderingLayers:
   - Default

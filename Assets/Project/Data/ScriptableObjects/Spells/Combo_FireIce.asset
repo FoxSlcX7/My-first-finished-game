@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a9a026a53cbfb414c9ae7725b0298213, type: 3}
-  m_Name: Combo_FireLightning
+  m_Name: Combo_FireIce
   m_EditorClassIdentifier: Assembly-CSharp::SpellComboSO
   elementA: 0
-  elementB: 2
-  cooldown: 2
-  comboName: LagunaBlade
-  icon: {fileID: 21300000, guid: 57fddcef572254749ad949b7a07b3e07, type: 3}
+  elementB: 1
+  cooldown: 1.8
+  comboName: SteamBlast
+  icon: {fileID: 21300000, guid: 4409646a5d92cb24090a1f2908152a91, type: 3}
   projectilePrefab: {fileID: 199471037160950349, guid: fe52037ca69118d458cbade5fccf5452, type: 3}
-  projectileSpeed: 15
-  lifetime: 1.8
-  damage: 45
-  projectileColor: {r: 1, g: 0.3007531, b: 0, a: 1}
+  projectileSpeed: 13
+  lifetime: 2
+  damage: 5
+  projectileColor: {r: 1, g: 0, b: 0.8630773, a: 1}

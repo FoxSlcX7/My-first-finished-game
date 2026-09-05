@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f48ac1d504e3c4249b4601f6eeb6dcb5, type: 3}
+  m_Name: Spell_FrostNova
+  m_EditorClassIdentifier: Assembly-CSharp::SpellSO
+  spellName: 
+  element: 1
+  icon: {fileID: 21300000, guid: f3ff209cd42513e4e8b745b2fc86d087, type: 3}
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 10
+  lifetime: 0.5
+  damage: 5
+  projectileColor: {r: 1, g: 1, b: 1, a: 1}
+  cooldown: 2
+  spellType: 1
+  effect: {fileID: 11400000, guid: c6b9c86f9cb215e40b46ea004cbc047e, type: 2}

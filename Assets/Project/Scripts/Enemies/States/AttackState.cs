@@ -11,24 +11,13 @@ public class AttackState : IEnemyState
     {
         if (_enemy == null) return;
 
-        // Игрок отошёл из зоны атаки — преследуем
-        if (_enemy.DistanceToPlayer() > _enemy.AttackRange)
+        if (_enemy.DistanceToPlayer() > _enemy.Data.attackRange)
         {
             _enemy.SetState(new ChaseState());
             return;
         }
 
-        // Игрок вышел из зоны обнаружения — стоим
-        if (_enemy.DistanceToPlayer() > _enemy.DetectionRange)
-        {
-            _enemy.SetState(new IdleState());
-            return;
-        }
-
-        // Наносим контактный урон
         _enemy.TryDealContactDamage();
-
-        // Стоим на месте при атаке (для melee)
         _enemy.StopMovement();
     }
 

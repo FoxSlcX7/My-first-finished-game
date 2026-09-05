@@ -45,6 +45,12 @@ public class Health : MonoBehaviour
         }
     }
 
+    public void Initialize(int maxHp)
+    {
+        maxHealth = maxHp;
+        CurrentHealth = maxHp;
+    }
+
     private void Die()
     {
         OnDeath?.Invoke();

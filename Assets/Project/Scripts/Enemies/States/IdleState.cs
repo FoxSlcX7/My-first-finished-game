@@ -1,29 +1,28 @@
+using UnityEngine;
+
 public class IdleState : IEnemyState
 {
     private EnemyController _enemy;
-    private float _idleTimer;
-    private float _idleDuration = 1f;
+    private float _timer;
+    private const float IDLE_DURATION = 1.5f;
 
     public void Enter(EnemyController enemy)
     {
         _enemy = enemy;
-        _idleTimer = _idleDuration;
+        _timer = IDLE_DURATION;
     }
 
     public void Execute()
     {
         if (_enemy == null) return;
 
-        _idleTimer -= UnityEngine.Time.deltaTime;
-
-        // Если игрок рядом — переходим в Chase
-        if (_enemy.DistanceToPlayer() <= _enemy.DetectionRange)
+        if (_enemy.DistanceToPlayer() <= _enemy.Data.detectionRange)
         {
             _enemy.SetState(new ChaseState());
             return;
         }
 
-        // Если таймер кончился — просто стоим дальше (можно добавить патрулирование)
+        _timer -= Time.deltaTime;
     }
 
     public void Exit() { }

@@ -5,14 +5,12 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Prefabs")]
-    [SerializeField] private EnemyController meleePrefab;
-    [SerializeField] private EnemyController rangedPrefab;
+    [SerializeField] private EnemyController[] enemyPrefabs;
 
     [Header("Map")]
     [SerializeField] private MapGenerator mapGenerator;
 
     [Header("Spawn Settings")]
-    [SerializeField] private float rangedSpawnChance = 0.3f;
     [SerializeField] private float spawnInterval = 5f;
     [SerializeField] private int maxEnemies = 15;
     [SerializeField] private float minSpawnDistanceFromPlayer = 8f;
@@ -33,17 +31,13 @@ public class EnemySpawner : MonoBehaviour
     private void OnEnable()
     {
         if (GameEvents.OnEnemyDied != null)
-        {
             GameEvents.OnEnemyDied.AddListener(HandleEnemyDeath);
-        }
     }
 
     private void OnDisable()
     {
         if (GameEvents.OnEnemyDied != null)
-        {
             GameEvents.OnEnemyDied.RemoveListener(HandleEnemyDeath);
-        }
     }
 
     private void CacheSpawnPoints()
@@ -75,11 +69,12 @@ public class EnemySpawner : MonoBehaviour
     private void TrySpawn()
     {
         if (_activeEnemies >= maxEnemies) return;
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0) return;
 
         Vector2? spawnPos = GetRandomValidSpawnPosition();
         if (!spawnPos.HasValue) return;
 
-        EnemyController prefab = Random.value < rangedSpawnChance ? rangedPrefab : meleePrefab;
+        EnemyController prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
 
         if (prefab != null)
         {
