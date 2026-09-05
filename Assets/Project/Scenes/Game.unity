@@ -371,8 +371,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b19120412402de94e964adea823b8920, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
-  meleePrefab: {fileID: 3565595830000533452, guid: 3b8b449b133490c4db433941e281d320, type: 3}
-  rangedPrefab: {fileID: 2358878948468276435, guid: 8edce889636479e42acff3e212274e3b, type: 3}
+  meleePrefab: {fileID: 3255904345941430673, guid: 3b8b449b133490c4db433941e281d320, type: 3}
+  rangedPrefab: {fileID: 3890835237095322717, guid: 8edce889636479e42acff3e212274e3b, type: 3}
   mapGenerator: {fileID: 1392741346}
   rangedSpawnChance: 0.3
   spawnInterval: 5

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7112540233363937742}
   - component: {fileID: 8140322679246175245}
   - component: {fileID: 2212921211734291349}
-  - component: {fileID: 3565595830000533452}
+  - component: {fileID: 3255904345941430673}
   - component: {fileID: 2149604650436275400}
   - component: {fileID: 5862907844731933588}
   - component: {fileID: 7559310405501446856}
@@ -172,7 +172,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &3565595830000533452
+--- !u!114 &3255904345941430673
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -181,11 +181,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3542326547411098170}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d8cb06fb6cbb7d4b8e82b59cd2572a7, type: 3}
+  m_Script: {fileID: 11500000, guid: 0be1bcfd568fea84892bc3679cc6cb1b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   moveSpeed: 3.5
   acceleration: 15
+  detectionRange: 10
+  attackRange: 1.5
   contactDamage: 12
   damageCooldown: 1.2
 --- !u!114 &2149604650436275400

@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 8971574873135149519}
   - component: {fileID: 6719007121781016890}
   - component: {fileID: 7888809225841890294}
+  - component: {fileID: 3890835237095322717}
   - component: {fileID: 1629112463800752690}
-  - component: {fileID: 2358878948468276435}
   - component: {fileID: 1437389652181305768}
   - component: {fileID: 9079693398829541438}
   m_Layer: 0
@@ -173,6 +173,24 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1.121547}
   m_EdgeRadius: 0
+--- !u!114 &3890835237095322717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 701442484615744292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0be1bcfd568fea84892bc3679cc6cb1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyController
+  moveSpeed: 2.5
+  acceleration: 12
+  detectionRange: 12
+  attackRange: 8
+  contactDamage: 5
+  damageCooldown: 2.5
 --- !u!114 &1629112463800752690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,25 +204,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 45
---- !u!114 &2358878948468276435
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 701442484615744292}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd12815cddb293b4093562b2870a2c3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RangedEnemy
-  moveSpeed: 2.5
-  acceleration: 12
-  preferredDistance: 8
-  stopDistance: 6
-  shootInterval: 2.5
-  projectilePrefab: {fileID: 5465572880370700109, guid: b307267b19e2a10498c984390a0a739b, type: 3}
-  firePoint: {fileID: 5499061189847066736}
 --- !u!114 &1437389652181305768
 MonoBehaviour:
   m_ObjectHideFlags: 0

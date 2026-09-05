@@ -4,13 +4,20 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private MeleeEnemy meleePrefab;
-    [SerializeField] private RangedEnemy rangedPrefab;
+    [Header("Prefabs")]
+    [SerializeField] private EnemyController meleePrefab;
+    [SerializeField] private EnemyController rangedPrefab;
+
+    [Header("Map")]
     [SerializeField] private MapGenerator mapGenerator;
+
+    [Header("Spawn Settings")]
     [SerializeField] private float rangedSpawnChance = 0.3f;
     [SerializeField] private float spawnInterval = 5f;
     [SerializeField] private int maxEnemies = 15;
     [SerializeField] private float minSpawnDistanceFromPlayer = 8f;
+
+    [Header("Validation")]
     [SerializeField] private float spawnCheckRadius = 0.4f;
     [SerializeField] private LayerMask wallLayerMask;
 
@@ -46,6 +53,7 @@ public class EnemySpawner : MonoBehaviour
             Debug.LogError("EnemySpawner: не назначен MapGenerator!");
             return;
         }
+
         _validSpawnPoints = mapGenerator.FloorPositions.ToList();
         Debug.Log($"Спавн-точек загружено: {_validSpawnPoints.Count}");
     }
@@ -56,6 +64,7 @@ public class EnemySpawner : MonoBehaviour
         if (GameManager.Instance?.PlayerTransform == null) return;
 
         _timer += Time.deltaTime;
+
         if (_timer >= spawnInterval)
         {
             _timer = 0f;
@@ -70,16 +79,13 @@ public class EnemySpawner : MonoBehaviour
         Vector2? spawnPos = GetRandomValidSpawnPosition();
         if (!spawnPos.HasValue) return;
 
-        if (Random.value < rangedSpawnChance)
-        {
-            Instantiate(rangedPrefab, spawnPos.Value, Quaternion.identity);
-        }
-        else
-        {
-            Instantiate(meleePrefab, spawnPos.Value, Quaternion.identity);
-        }
+        EnemyController prefab = Random.value < rangedSpawnChance ? rangedPrefab : meleePrefab;
 
-        _activeEnemies++;
+        if (prefab != null)
+        {
+            Instantiate(prefab, spawnPos.Value, Quaternion.identity);
+            _activeEnemies++;
+        }
     }
 
     private Vector2? GetRandomValidSpawnPosition()
@@ -101,6 +107,7 @@ public class EnemySpawner : MonoBehaviour
             if (IsPositionFree(worldPos))
                 return worldPos;
         }
+
         return null;
     }
 
