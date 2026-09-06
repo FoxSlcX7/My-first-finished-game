@@ -12,6 +12,9 @@ public class SpellPickupSpawner : MonoBehaviour
     [SerializeField] private MapGenerator mapGenerator; // ссылка на генератор карты
     [SerializeField] private LayerMask obstacleLayerMask; // слой стен, чтобы проверять столкновения
 
+    [Header("Runtime")]
+    [SerializeField] private bool spawnEnabled = true;
+
     private Transform _player;
     private float _timer;
     private List<Vector2Int> _cachedFloorPositions;
@@ -30,6 +33,18 @@ public class SpellPickupSpawner : MonoBehaviour
         {
             Debug.LogError("SpellPickupSpawner: не назначен MapGenerator!");
         }
+    }
+
+    private void OnEnable()
+    {
+        if (mapGenerator != null)
+            mapGenerator.OnMapGenerated += CacheFloorPositions;
+    }
+
+    private void OnDisable()
+    {
+        if (mapGenerator != null)
+            mapGenerator.OnMapGenerated -= CacheFloorPositions;
     }
 
     private void CacheFloorPositions()

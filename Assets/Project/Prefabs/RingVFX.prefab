@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2000029830552595133}
   - component: {fileID: 299701206620534063}
   m_Layer: 8
-  m_Name: RingVFXPrefab
+  m_Name: RingVFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

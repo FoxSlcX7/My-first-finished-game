@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class UIHealthBar : MonoBehaviour
 {
-    [SerializeField] private Image fillImage;
+    [SerializeField] private Slider slider;
     [SerializeField] private TextMeshProUGUI healthText;
 
     private void OnEnable()
@@ -25,15 +25,19 @@ public class UIHealthBar : MonoBehaviour
 
     private void UpdateHealthBar(int current, int max)
     {
-        current = Mathf.Max(0, current); // защита от отрицательных чисел
+          float fillAmount = Mathf.Clamp01(max > 0 ? (float)current / max : 0f);
+        //fillImage.fillAmount = Mathf.Clamp01(fillAmount);
 
-        float fillAmount = max > 0 ? (float)current / max : 0f;
-        fillImage.fillAmount = Mathf.Clamp01(fillAmount);
+        if (slider != null)
+        {
+            slider.maxValue = max;
+            slider.value = current;
+        }
 
         if (healthText != null)
         {
             // Интерполяция строк: подставляет значения в текст
-            healthText.text = $"{current}/{max}";
+            healthText.text = $"HP {current}/{max}";
 
             // Бонус: краснеет, когда HP мало (меньше 30%)
             healthText.color = fillAmount <= 0.3f ? Color.red : Color.white;

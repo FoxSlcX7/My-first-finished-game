@@ -18,7 +18,8 @@ MonoBehaviour:
   projectilePrefab: {fileID: 0}
   projectileSpeed: 10
   lifetime: 0.5
-  damage: 5
+  damage: 50
+  knockbackForce: 8
   projectileColor: {r: 1, g: 1, b: 1, a: 1}
   cooldown: 2
   spellType: 1

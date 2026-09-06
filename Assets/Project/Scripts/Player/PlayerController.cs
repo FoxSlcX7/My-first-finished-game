@@ -87,7 +87,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector2 targetVelocity = _moveInput * moveSpeed;
+        float speedMult = PlayerStats.Instance != null ? PlayerStats.Instance.MoveSpeedMultiplier : 1f;
+        Vector2 targetVelocity = _moveInput * moveSpeed * speedMult;
         Vector2 velocityChange = targetVelocity - _rb.linearVelocity;
         _rb.AddForce(velocityChange * acceleration, ForceMode2D.Force);
     }

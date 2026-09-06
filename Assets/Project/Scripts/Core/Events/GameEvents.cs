@@ -18,6 +18,10 @@ public static class GameEvents
     public static ComboGameEvent OnComboStateChanged;
     public static ComboGameEvent OnComboCast;
 
+    // Прогрессия
+    public static GameEvent OnLevelUp;
+    public static IntPairGameEvent OnXPChanged;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Initialize()
     {
@@ -31,6 +35,8 @@ public static class GameEvents
         OnSlotBChanged = Resources.Load<SpellGameEvent>("Events/OnSlotBChanged");
         OnComboStateChanged = Resources.Load<ComboGameEvent>("Events/OnComboStateChanged");
         OnComboCast = Resources.Load<ComboGameEvent>("Events/OnComboCast");
+        OnLevelUp = Resources.Load<GameEvent>("Events/OnLevelUp");
+        OnXPChanged = Resources.Load<IntPairGameEvent>("Events/OnXPChanged");
 
         Verify("OnHealthChangedEvent", OnHealthChanged);
         Verify("OnPlayerDamagedEvent", OnPlayerDamaged);
@@ -42,6 +48,8 @@ public static class GameEvents
         Verify("OnSlotBChanged", OnSlotBChanged);
         Verify("OnComboStateChanged", OnComboStateChanged);
         Verify("OnComboCast", OnComboCast);
+        Verify("OnLevelUp", OnLevelUp);
+        Verify("OnXPChanged", OnXPChanged);
 
         Debug.Log("✅ GameEvents: все события загружены");
     }
@@ -49,8 +57,6 @@ public static class GameEvents
     private static void Verify(string name, Object asset)
     {
         if (asset == null)
-        {
             Debug.LogError($"❌ Не загрузилось событие: {name}");
-        }
     }
 }

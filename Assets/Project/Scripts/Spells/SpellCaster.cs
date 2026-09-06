@@ -45,7 +45,7 @@ public class SpellCaster : MonoBehaviour
     {
         if (_slotA == null || Time.time < _nextSlotATime) return;
 
-        _nextSlotATime = Time.time + _slotA.cooldown;
+        _nextSlotATime = Time.time + _slotA.cooldown * GetCooldownMult();
         CastBaseSpell(_slotA);
         OnSpellCast?.Invoke();
     }
@@ -57,7 +57,7 @@ public class SpellCaster : MonoBehaviour
     {
         if (_slotB == null || Time.time < _nextSlotBTime) return;
 
-        _nextSlotBTime = Time.time + _slotB.cooldown;
+        _nextSlotBTime = Time.time + _slotB.cooldown * GetCooldownMult();
         CastBaseSpell(_slotB);
         OnSpellCast?.Invoke();
     }
@@ -70,7 +70,7 @@ public class SpellCaster : MonoBehaviour
         SpellComboSO combo = GetActiveCombo();
         if (combo == null || Time.time < _nextComboTime) return;
 
-        _nextComboTime = Time.time + combo.cooldown;
+        _nextComboTime = Time.time + combo.cooldown * GetCooldownMult();
         SpawnComboProjectile(combo);
 
         GameEvents.OnComboCast?.Raise(combo);
@@ -92,6 +92,11 @@ public class SpellCaster : MonoBehaviour
     {
         if (comboDatabase == null || _slotA == null || _slotB == null) return null;
         return comboDatabase.FindCombo(_slotA.element, _slotB.element);
+    }
+
+    private float GetCooldownMult()
+    {
+        return PlayerStats.Instance != null ? PlayerStats.Instance.CooldownMultiplier : 1f;
     }
 
     private void RefreshComboState()

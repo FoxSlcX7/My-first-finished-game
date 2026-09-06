@@ -147,6 +147,7 @@ public class EnemyController : MonoBehaviour
 
     private void HandleDeath()
     {
+        XPDropper.Instance?.Drop(transform.position);
         SetState(new DeadState());
     }
 

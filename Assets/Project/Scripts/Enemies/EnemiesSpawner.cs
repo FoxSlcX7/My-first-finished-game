@@ -19,9 +19,14 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnCheckRadius = 0.4f;
     [SerializeField] private LayerMask wallLayerMask;
 
+    [Header("Ambient")]
+    [SerializeField] private bool ambientSpawnEnabled = true;
+
     private float _timer;
     private int _activeEnemies;
     private List<Vector2Int> _validSpawnPoints;
+
+    public void RefreshSpawnPoints() => CacheSpawnPoints();
 
     private void Start()
     {
@@ -54,6 +59,7 @@ public class EnemySpawner : MonoBehaviour
 
     private void Update()
     {
+        if (!ambientSpawnEnabled) return;
         if (_validSpawnPoints == null || _validSpawnPoints.Count == 0) return;
         if (GameManager.Instance?.PlayerTransform == null) return;
 
