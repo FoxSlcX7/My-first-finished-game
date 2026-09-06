@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 68036f52fe909614ea090a53d2af0885
+guid: ddd4582a59e68b64fb9c024304198312
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5057094605890446306
-    second: GrishaEnemy_0
+      213: 4360334499359725854
+    second: Hero_First_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GrishaEnemy_0
+      name: Hero_First_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 362
-        height: 406
+        x: 2
+        y: 1
+        width: 25
+        height: 30
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e1c1b54ef3791d9b0800000000000000
-      internalID: -5057094605890446306
+      spriteID: e1997380025038c30800000000000000
+      internalID: 4360334499359725854
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GrishaEnemy_0: -5057094605890446306
+      Hero_First_0: 4360334499359725854
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

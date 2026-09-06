@@ -128,6 +128,18 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Поворачивает только firePoint к курсору.
+    /// Вызывается из PlayerController каждый кадр.
+    /// </summary>
+    public void SetAimDirection(Vector2 direction)
+    {
+        if (firePoint == null) return;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        firePoint.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
     public void EquipSpell(SpellSO spell)
     {
         if (_slotA == null)

@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float acceleration = 15f;
     [SerializeField] private SpellCaster spellCaster;
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Knockback")]
     [Range(0f, 1f)][SerializeField] private float knockbackResistance = 0.3f;
@@ -18,12 +19,23 @@ public class PlayerController : MonoBehaviour
     private Vector2 _aimInput;
     private Camera _mainCamera;
 
+
+    private void OnEnable()
+    {
+        if (_mainCamera == null)
+            _mainCamera = Camera.main;
+    }
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _mainCamera = Camera.main;
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+
     }
 
     private void Start()
@@ -38,6 +50,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnAim(InputAction.CallbackContext context)
     {
+        if (_mainCamera == null) return;
+
         Vector2 screenPos = context.ReadValue<Vector2>();
         _aimInput = _mainCamera.ScreenToWorldPoint(screenPos);
     }
@@ -83,8 +97,14 @@ public class PlayerController : MonoBehaviour
         Vector2 aimDirection = _aimInput - (Vector2)transform.position;
         if (aimDirection.sqrMagnitude > 0.01f)
         {
-            float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0, 0, angle);
+            aimDirection.Normalize();
+            
+            if (spriteRenderer != null && Mathf.Abs(aimDirection.x) > 0.01f)
+            {
+                spriteRenderer.flipX = aimDirection.x < 0;
+            }
+
+            spellCaster?.SetAimDirection(aimDirection);
         }
     }
 }

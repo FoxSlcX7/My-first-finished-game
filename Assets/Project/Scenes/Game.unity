@@ -782,7 +782,7 @@ GameObject:
   - component: {fileID: 677357244}
   - component: {fileID: 677357243}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: Tilemaps
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1398,10 +1398,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90691662b8541d34c98e31192a505309, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
-  walkLength: 80
-  iterations: 4
+  mapWidth: 60
+  mapHeight: 60
+  targetFloorTiles: 600
+  walkLength: 120
+  maxWalks: 12
   roomMinSize: 4
-  roomMaxSize: 8
+  roomMaxSize: 9
   visualizer: {fileID: 1392741345}
 --- !u!4 &1392741347
 Transform:
@@ -1804,7 +1807,7 @@ CompositeCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5c436669297ca3845b14bc2a54c3f749, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1878,7 +1881,7 @@ TilemapCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5c436669297ca3845b14bc2a54c3f749, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

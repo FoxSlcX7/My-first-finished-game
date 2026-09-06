@@ -93,7 +93,7 @@ SpriteRenderer:
   m_SortingLayer: 3
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 4360334499359725854, guid: ddd4582a59e68b64fb9c024304198312, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -130,7 +130,7 @@ Rigidbody2D:
   m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!61 &6355470531519998474
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -141,7 +141,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 5c436669297ca3845b14bc2a54c3f749, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -169,7 +169,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 0.78125, y: 0.9375}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -306,6 +306,7 @@ MonoBehaviour:
   moveSpeed: 6
   acceleration: 15
   spellCaster: {fileID: 2490932771942793091}
+  spriteRenderer: {fileID: 0}
   knockbackResistance: 0.3
   knockbackCooldown: 0.2
 --- !u!114 &2782373472721974930
