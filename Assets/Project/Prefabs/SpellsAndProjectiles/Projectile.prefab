@@ -144,3 +144,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
   speed: 10
   lifetime: 3
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  wallCheckRadius: 0.1

@@ -395,7 +395,7 @@ GameObject:
   - component: {fileID: 506448418}
   - component: {fileID: 506448420}
   - component: {fileID: 506448419}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FloorTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1775,7 +1775,7 @@ GameObject:
   - component: {fileID: 1912978622}
   - component: {fileID: 1912978621}
   - component: {fileID: 1912978620}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: WallTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}

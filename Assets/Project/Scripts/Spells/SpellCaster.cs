@@ -11,27 +11,25 @@ public class SpellCaster : MonoBehaviour
 
     private SpellSO _slotA;
     private SpellSO _slotB;
-    private float _slotACooldown;
-    private float _slotBCooldown;
-    private float _comboCooldown;
+    private float _nextSlotATime;
+    private float _nextSlotBTime;
+    private float _nextComboTime;
     private bool _wasComboReady;
 
     private void Start()
     {
         _slotA = availableSpells[0];
         _slotB = availableSpells[1];
+
         GameEvents.OnSlotAChanged?.Raise(_slotA);
         GameEvents.OnSlotBChanged?.Raise(_slotB);
+
         RefreshComboState();
         _wasComboReady = IsComboReady();
     }
 
     private void Update()
     {
-        if (_slotACooldown > 0f) _slotACooldown -= Time.deltaTime;
-        if (_slotBCooldown > 0f) _slotBCooldown -= Time.deltaTime;
-        if (_comboCooldown > 0f) _comboCooldown -= Time.deltaTime;
-
         bool isReady = IsComboReady();
         if (isReady != _wasComboReady)
         {
@@ -45,9 +43,9 @@ public class SpellCaster : MonoBehaviour
     // ═══════════════════════════════════════
     public void CastSlot1()
     {
-        if (_slotA == null || _slotACooldown > 0f) return;
+        if (_slotA == null || Time.time < _nextSlotATime) return;
 
-        _slotACooldown = _slotA.cooldown;
+        _nextSlotATime = Time.time + _slotA.cooldown;
         CastBaseSpell(_slotA);
         OnSpellCast?.Invoke();
     }
@@ -57,9 +55,9 @@ public class SpellCaster : MonoBehaviour
     // ═══════════════════════════════════════
     public void CastSlot2()
     {
-        if (_slotB == null || _slotBCooldown > 0f) return;
+        if (_slotB == null || Time.time < _nextSlotBTime) return;
 
-        _slotBCooldown = _slotB.cooldown;
+        _nextSlotBTime = Time.time + _slotB.cooldown;
         CastBaseSpell(_slotB);
         OnSpellCast?.Invoke();
     }
@@ -70,10 +68,11 @@ public class SpellCaster : MonoBehaviour
     public void CastCombo()
     {
         SpellComboSO combo = GetActiveCombo();
-        if (combo == null || _comboCooldown > 0f) return;
+        if (combo == null || Time.time < _nextComboTime) return;
 
-        _comboCooldown = combo.cooldown;
+        _nextComboTime = Time.time + combo.cooldown;
         SpawnComboProjectile(combo);
+
         GameEvents.OnComboCast?.Raise(combo);
         OnSpellCast?.Invoke();
     }
@@ -83,7 +82,7 @@ public class SpellCaster : MonoBehaviour
     // ═══════════════════════════════════════
     public bool IsComboReady()
     {
-        return GetActiveCombo() != null && _comboCooldown <= 0f;
+        return GetActiveCombo() != null && Time.time >= _nextComboTime;
     }
 
     // ═══════════════════════════════════════

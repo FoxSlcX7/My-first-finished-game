@@ -101,7 +101,7 @@ public class PlayerController : MonoBehaviour
             
             if (spriteRenderer != null && Mathf.Abs(aimDirection.x) > 0.01f)
             {
-                spriteRenderer.flipX = aimDirection.x < 0;
+                spriteRenderer.flipX = aimDirection.x > 0;
             }
 
             spellCaster?.SetAimDirection(aimDirection);
