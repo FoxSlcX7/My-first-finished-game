@@ -105,14 +105,43 @@ public class UpgradeManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            Rarity rarity = rarityConfig != null ? rarityConfig.Roll(floor) : Rarity.Common;
-            UpgradeDataSO pick = PickByRarity(rarity, inOffer) ?? PickAny(inOffer);
+            UpgradeDataSO pick = null;
+            Rarity lastRoll = Rarity.Common;
+
+            // Несколько роллов редкости: если пул редкости пуст — роллим заново,
+            // а не падаем сразу в «любой»
+            for (int attempt = 0; attempt < 4 && pick == null; attempt++)
+            {
+                lastRoll = rarityConfig != null ? rarityConfig.Roll(floor) : Rarity.Common;
+                pick = PickByRarity(lastRoll, inOffer);
+            }
+
+            // Фолбэки БЕЗ легендарок: легендарка только через прямой ролл
+            if (pick == null) pick = PickAnyNonLegendary(inOffer);
+            if (pick == null) pick = PickAny(inOffer);
             if (pick == null) break;
+
+            Debug.Log($"[DraftDebug] card {i + 1}: roll={lastRoll} → pick={pick.upgradeName} ({pick.rarity})");
 
             result.Add(pick);
             inOffer.Add(pick);
         }
         return result.ToArray();
+    }
+
+    /// <summary>
+    /// Выбор «что угодно» без легендарок — чтобы они не протекали
+    /// через фолбэк чаще, чем разрешают веса конфига.
+    /// </summary>
+    private UpgradeDataSO PickAnyNonLegendary(List<UpgradeDataSO> exclude)
+    {
+        List<UpgradeDataSO> pool = new List<UpgradeDataSO>();
+        foreach (var u in allUpgrades)
+        {
+            if (u == null || u.rarity == Rarity.Legendary || exclude.Contains(u)) continue;
+            pool.Add(u);
+        }
+        return pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
     }
 
     /// <summary>
