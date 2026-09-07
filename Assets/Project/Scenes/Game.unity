@@ -425,6 +425,8 @@ MonoBehaviour:
   icon: {fileID: 144483538}
   title: {fileID: 170750120}
   description: {fileID: 125540715}
+  rarityFrame: {fileID: 0}
+  rarityLabel: {fileID: 0}
 --- !u!114 &144483537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -700,6 +702,8 @@ MonoBehaviour:
   icon: {fileID: 214784483}
   title: {fileID: 264351325}
   description: {fileID: 1892659844}
+  rarityFrame: {fileID: 0}
+  rarityLabel: {fileID: 0}
 --- !u!114 &214784482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2346,8 +2350,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2b247d29e000dff49b0fa8c2db25db6c, type: 2}
   - {fileID: 11400000, guid: 88826079f5bcfb14781e01e0a57a4919, type: 2}
   - {fileID: 11400000, guid: 1d79255d099b387438e3b2504875497f, type: 2}
+  - {fileID: 11400000, guid: 18b7882d18f850247bca4b7c19a21ca1, type: 2}
+  - {fileID: 11400000, guid: 07558b83bb739884a8a714ba886ea3f3, type: 2}
+  - {fileID: 11400000, guid: 80be8683aa6e2694f899d78b913c47df, type: 2}
   panel: {fileID: 1861818277}
-  debugOfferOnU: 1
+  rarityConfig: {fileID: 11400000, guid: b5c1378ef99ec4843b332baae9f6d0fe, type: 2}
 --- !u!4 &1057220726
 Transform:
   m_ObjectHideFlags: 0
@@ -2599,6 +2606,8 @@ MonoBehaviour:
   icon: {fileID: 1343972567}
   title: {fileID: 495178119}
   description: {fileID: 481065893}
+  rarityFrame: {fileID: 0}
+  rarityLabel: {fileID: 0}
 --- !u!114 &1343972566
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f2f760e7857803479c649c7143a6a37, type: 3}
-  m_Name: AdditionalProjectileUP
+  m_Name: VampirismUP
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeDataSO
-  upgradeName: Additional Projectile Upgrade
-  description: Adds an extra projectile to your attacks
-  icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  effect: {fileID: 11400000, guid: cd15a62d5ad5ffd4c8220d0c5c43b2a3, type: 2}
-  rarity: 2
+  upgradeName: Vampirism Upgrade
+  description: Increases % of HP restored from a hit
+  icon: {fileID: 0}
+  effect: {fileID: 11400000, guid: 7d4b50167297eca4d8f831d3e53de0aa, type: 2}
+  rarity: 3

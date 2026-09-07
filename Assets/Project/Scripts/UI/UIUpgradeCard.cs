@@ -7,8 +7,10 @@ using UnityEngine.UI;
 public class UIUpgradeCard : MonoBehaviour
 {
     [SerializeField] private Image icon;
-    [SerializeField] private TextMeshProUGUI title;     // если у тебя TextMeshPro — замени тип
+    [SerializeField] private TextMeshProUGUI title;
     [SerializeField] private TextMeshProUGUI description;
+    [SerializeField] private Image rarityFrame;          // рамка/подложка карточки
+    [SerializeField] private TextMeshProUGUI rarityLabel; // «Редкий» и т.д.
 
     private Button _button;
     private UpgradeDataSO _data;
@@ -29,5 +31,12 @@ public class UIUpgradeCard : MonoBehaviour
         if (icon != null) { icon.sprite = data.icon; icon.enabled = data.icon != null; }
         if (title != null) title.text = data.upgradeName;
         if (description != null) description.text = data.description;
+
+        if (rarityFrame != null) rarityFrame.color = data.rarity.GetColor();
+        if (rarityLabel != null)
+        {
+            rarityLabel.text = data.rarity.GetDisplayName();
+            rarityLabel.color = data.rarity.GetColor();
+        }
     }
 }

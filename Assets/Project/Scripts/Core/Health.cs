@@ -45,6 +45,14 @@ public class Health : MonoBehaviour
         }
     }
 
+    public void Heal(int amount)
+    {
+        if (amount <= 0) return;
+        CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
+        if (_isPlayer)
+            GameEvents.OnHealthChanged?.Raise(CurrentHealth, MaxHealth);
+    }
+
     public void Initialize(int maxHp)
     {
         maxHealth = maxHp;

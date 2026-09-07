@@ -7,5 +7,5 @@ public class UpgradeDataSO : ScriptableObject
     [TextArea(2, 4)] public string description;
     public Sprite icon;
     public UpgradeEffectBase effect;
-    // Редкость добавим в дни 45–46
+    public Rarity rarity = Rarity.Common;
 }
