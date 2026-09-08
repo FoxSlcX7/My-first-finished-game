@@ -4,5 +4,7 @@ using UnityEngine;
 public class ReduceCooldownEffect : UpgradeEffectBase
 {
     public float percent = 0.1f;
-    public override void Apply(PlayerStats stats) => stats.ReduceCooldown(percent);
+    public override void Apply(PlayerStats stats, string source) =>
+    stats.AddModifier(StatType.Cooldown,
+        new StatModifier(-percent, StatModifier.ModifierType.Multiply, source));
 }

@@ -10,6 +10,12 @@ public class RoomController : MonoBehaviour
     [Tooltip("На сколько тайлов вглубь игрок должен зайти, чтобы комната активировалась.")]
     [SerializeField] private int activationInset = 2;
 
+    [Header("Поводок")]
+    [Tooltip("Скорость, с которой врага вытягивает обратно в комнату (должна быть выше скорости врагов).")]
+    [SerializeField] private float leashPullSpeed = 10f;
+    [Tooltip("Если врага унесло дальше этого расстояния — аварийный телепорт.")]
+    [SerializeField] private float hardLeashDistance = 2.5f;
+
     private Room _room;
     private HashSet<Vector2Int> _globalFloor;
     private RoomRole _role;
@@ -21,12 +27,19 @@ public class RoomController : MonoBehaviour
     private readonly List<EnemyController> _waveEnemies = new();
     private Coroutine _lockRoutine;
     private int _aliveCount;
+    private int _remainingToSpawn;
+    private Coroutine _spawnRoutine;
     private bool _activated;
     private bool _cleared;
 
     // ═══════════════════════════════════════
     // Поводок: волновые враги не могут покинуть арену,
     // пока комната не зачищена
+    // ═══════════════════════════════════════
+    // ═══════════════════════════════════════
+    // Поводок: волновые враги не покидают арену.
+    // Летающих (сквозь стены) вытягиваем ПЛАВНО,
+    // телепорт — только как аварийная мера.
     // ═══════════════════════════════════════
     private void Update()
     {
@@ -39,16 +52,32 @@ public class RoomController : MonoBehaviour
             if (enemy == null) continue;
 
             Vector2 pos = enemy.transform.position;
-            int x = Mathf.FloorToInt(pos.x);
-            int y = Mathf.FloorToInt(pos.y);
+            Vector2 clamped = ClampToRoom(pos, b);
 
-            if (x < b.xMin || x > b.xMax - 1 || y < b.yMin || y > b.yMax - 1)
+            float distOut = Vector2.Distance(pos, clamped);
+            if (distOut < 0.01f) continue; // внутри комнаты — не трогаем
+
+            if (distOut > hardLeashDistance)
             {
-                int cx = Mathf.Clamp(x, b.xMin, b.xMax - 1);
-                int cy = Mathf.Clamp(y, b.yMin, b.yMax - 1);
-                enemy.transform.position = new Vector2(cx + 0.5f, cy + 0.5f);
+                // унесло слишком далеко (например, сквозь стену) — аварийный возврат
+                enemy.transform.position = clamped;
+            }
+            else
+            {
+                // плавно тянем обратно: без рывков и визуальных телепортов
+                enemy.transform.position = Vector2.MoveTowards(pos, clamped, leashPullSpeed * Time.deltaTime);
             }
         }
+    }
+
+    /// <summary>
+    // Ближайшая точка внутри комнаты (непрерывные координаты, не центр тайла).
+    /// </summary>
+    private static Vector2 ClampToRoom(Vector2 pos, BoundsInt b)
+    {
+        return new Vector2(
+            Mathf.Clamp(pos.x, b.xMin, b.xMax),
+            Mathf.Clamp(pos.y, b.yMin, b.yMax));
     }
 
     public void Init(Room room, HashSet<Vector2Int> globalFloor, RoomRole role, DungeonConfigSO config)
@@ -131,54 +160,84 @@ public class RoomController : MonoBehaviour
     // ═══════════════════════════════════════
     // Волна: спавн только по финальному полу
     // ═══════════════════════════════════════
+    // ═══════════════════════════════════════
+    // Волна выходит постепенно: батчами с интервалом.
+    // Зачистка = заспавнены ВСЕ и убиты ВСЕ.
+    // ═══════════════════════════════════════
     private void SpawnWave()
     {
-        if (_config.wavePrefabs == null || _config.wavePrefabs.Length == 0) return;
+        if (_config.wavePrefabs == null || _config.wavePrefabs.Length == 0)
+        {
+            ClearRoom();
+            return;
+        }
 
         int area = _room.FloorPositions.Count;
         int byArea = Mathf.FloorToInt(area / Mathf.Max(1f, _config.tilesPerEnemy));
         int floorBonus = Mathf.Max(0, DungeonDirector.Instance.Floor - 1) * _config.enemyCountPerFloor;
         int count = Mathf.Clamp(byArea + floorBonus, _config.minWaveCount, _config.maxWaveCount);
 
+        _remainingToSpawn = count;
+        _spawnRoutine = StartCoroutine(SpawnWaveRoutine());
+    }
+
+    private IEnumerator SpawnWaveRoutine()
+    {
+        yield return new WaitForSeconds(_config.waveStartDelay);
+
+        while (_remainingToSpawn > 0 && !_cleared)
+        {
+            int batch = Mathf.Min(Mathf.Max(1, _config.waveBatchSize), _remainingToSpawn);
+            for (int i = 0; i < batch; i++)
+            {
+                SpawnOneEnemy();
+            }
+            yield return new WaitForSeconds(_config.waveSpawnInterval);
+        }
+    }
+
+    /// <summary>
+    // Спавн одного врага волны. Единственная точка спавна —
+    // сюда позже повесим VFX-портал появления.
+    // </summary>
+    private void SpawnOneEnemy()
+    {
+        _remainingToSpawn--;
+
         List<Vector2Int> tiles = new List<Vector2Int>(_room.FloorPositions);
         Vector2 playerPos = GameManager.Instance?.PlayerTransform != null
             ? (Vector2)GameManager.Instance.PlayerTransform.position
             : Vector2.zero;
 
-        for (int i = 0; i < count; i++)
+        Vector2 world = Vector2.zero;
+        bool found = false;
+        for (int attempt = 0; attempt < 20; attempt++)
         {
-            Vector2 world = Vector2.zero;
-            bool found = false;
-            for (int attempt = 0; attempt < 20; attempt++)
+            Vector2Int tile = tiles[Random.Range(0, tiles.Count)];
+            if (!_globalFloor.Contains(tile)) continue;
+
+            Vector2 candidate = ToWorld(tile);
+            if (Vector2.Distance(candidate, playerPos) >= _config.minWaveSpawnDistance)
             {
-                Vector2Int tile = tiles[Random.Range(0, tiles.Count)];
-                if (!_globalFloor.Contains(tile)) continue;
-
-                Vector2 candidate = ToWorld(tile);
-                if (Vector2.Distance(candidate, playerPos) >= _config.minWaveSpawnDistance)
-                {
-                    world = candidate;
-                    found = true;
-                    break;
-                }
+                world = candidate;
+                found = true;
+                break;
             }
-            if (!found) continue;
-
-            EnemyController prefab = _config.wavePrefabs[Random.Range(0, _config.wavePrefabs.Length)];
-            EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
-            enemy.Health.OnDeath += () => OnWaveEnemyDied(enemy);
-            _waveEnemies.Add(enemy);
-            _aliveCount++;
         }
+        if (!found) return;
 
-        if (_aliveCount == 0) ClearRoom();
+        EnemyController prefab = _config.wavePrefabs[Random.Range(0, _config.wavePrefabs.Length)];
+        EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
+        enemy.Health.OnDeath += () => OnWaveEnemyDied(enemy);
+        _waveEnemies.Add(enemy);
+        _aliveCount++;
     }
 
     private void OnWaveEnemyDied(EnemyController enemy)
     {
         _waveEnemies.Remove(enemy);
         _aliveCount--;
-        if (_aliveCount <= 0) ClearRoom();
+        if (_aliveCount <= 0 && _remainingToSpawn <= 0) ClearRoom();
     }
 
     // ═══════════════════════════════════════
@@ -252,6 +311,7 @@ public class RoomController : MonoBehaviour
     private void ClearRoom()
     {
         if (_cleared) return;
+        if (_spawnRoutine != null) StopCoroutine(_spawnRoutine);
         _cleared = true;
 
         if (_lockRoutine != null) StopCoroutine(_lockRoutine);

@@ -20,4 +20,12 @@ public class DungeonConfigSO : ScriptableObject
 
     [Header("Награда из сундука")]
     public SpellSO[] rewardSpells;
+
+    [Header("Пейсинг волны")]
+    [Tooltip("Задержка до первого врага волны (сек).")]
+    public float waveStartDelay = 0.8f;
+    [Tooltip("Интервал между батчами (сек).")]
+    public float waveSpawnInterval = 0.9f;
+    [Tooltip("Сколько врагов выходит за один батч.")]
+    public int waveBatchSize = 1;
 }

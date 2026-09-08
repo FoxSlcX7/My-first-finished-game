@@ -29,42 +29,67 @@ public class UpgradeManager : MonoBehaviour
     private void Subscribe()
     {
         if (GameEvents.OnLevelUp == null) return;
-        GameEvents.OnLevelUp.RemoveListener(OfferUpgrades);
-        GameEvents.OnLevelUp.AddListener(OfferUpgrades);
+        GameEvents.OnLevelUp.RemoveListener(HandleLevelUp);
+        GameEvents.OnLevelUp.AddListener(HandleLevelUp);
     }
 
     private void OnDisable()
     {
-        GameEvents.OnLevelUp?.RemoveListener(OfferUpgrades);
+        GameEvents.OnLevelUp?.RemoveListener(HandleLevelUp);
     }
 
-    // ═══════════════════════════════════════
-    // Debug-клавиши для тестирования редкости
-    // ═══════════════════════════════════════
     private void Update()
     {
-        if (!debugKeysEnabled || Keyboard.current == null) return;
+        if (Keyboard.current == null) return;
 
-        // U — принудительная выдача карточек
+        // TAB — открыть выбор, если есть непотраченные уровни
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
+            OpenUpgradePanel();
+
+        if (!debugKeysEnabled) return;
+
+        // U — debug: начислить очко апгрейда
         if (Keyboard.current.uKey.wasPressedThisFrame)
-            OfferUpgrades();
+            HandleLevelUp();
 
-        // P — лог распределения редкостей (200 роллов, без открытия UI)
+        // P — лог распределения редкостей
         if (Keyboard.current.pKey.wasPressedThisFrame)
             LogRarityDistribution(200);
 
-        // L — дамп текущих множителей (проверка применения и сброса)
+        // L — дамп множителей
         if (Keyboard.current.lKey.wasPressedThisFrame && PlayerStats.Instance != null)
         {
             var s = PlayerStats.Instance;
             Debug.Log($"[StatsDebug] dmg={s.DamageMultiplier:F2} spd={s.MoveSpeedMultiplier:F2} cd={s.CooldownMultiplier:F2} proj={s.BonusProjectiles} rico={s.RicochetBounces} ls={s.LifeStealPercent:F2} chain={s.ChainTargets}");
         }
+
+        // B — временный бафф x2 урона на 5 сек
+        if (Keyboard.current.bKey.wasPressedThisFrame && PlayerStats.Instance != null)
+            PlayerStats.Instance.AddModifier(StatType.Damage,
+                new StatModifier(1f, StatModifier.ModifierType.Multiply, "debug_buff", 5f));
+
+        // V — разбивка статов
+        if (Keyboard.current.vKey.wasPressedThisFrame && PlayerStats.Instance != null)
+            PlayerStats.Instance.DebugLogBreakdown();
     }
 
-    public void OfferUpgrades()
+    // ═══════════════════════════════════════
+    // Level up теперь КОПИТСЯ, окно открывается по требованию
+    // ═══════════════════════════════════════
+    private void HandleLevelUp()
     {
         _pendingOffers++;
-        if (!_showing) ShowNext();
+        RaisePending();
+    }
+
+    public bool HasPendingUpgrades => _pendingOffers > 0;
+
+    /// <summary>Вызывается клавишей TAB и кнопкой HUD.</summary>
+    public void OpenUpgradePanel()
+    {
+        if (_showing || _pendingOffers <= 0) return;
+        if (Time.timeScale <= 0f) return; // игра на паузе чем-то другим (Game Over)
+        ShowNext();
     }
 
     private void ShowNext()
@@ -72,6 +97,7 @@ public class UpgradeManager : MonoBehaviour
         if (_pendingOffers <= 0 || allUpgrades == null || allUpgrades.Length == 0) return;
 
         _pendingOffers--;
+        RaisePending();
         _showing = true;
         Time.timeScale = 0f;
         panel.Show(GetRandomChoices(3), Pick);
@@ -79,8 +105,10 @@ public class UpgradeManager : MonoBehaviour
 
     private void Pick(UpgradeDataSO upgrade)
     {
+        Debug.Log($"[DraftDebug] TAKEN: {upgrade.upgradeName} ({upgrade.rarity})");
+
         if (upgrade.rarity == Rarity.Legendary)
-            _takenLegendaries.Add(upgrade); // легендарки уникальны
+            _takenLegendaries.Add(upgrade);
 
         PlayerStats.Instance?.ApplyUpgrade(upgrade);
         panel.Hide();
@@ -93,8 +121,10 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
+    private void RaisePending() => GameEvents.OnLevelUpPending?.Raise(_pendingOffers);
+
     // ═══════════════════════════════════════
-    // Драфт: ролл редкости с учётом этажа, без повторов в одной выдаче
+    // Драфт карточек (без изменений)
     // ═══════════════════════════════════════
     private UpgradeDataSO[] GetRandomChoices(int count)
     {
@@ -108,20 +138,17 @@ public class UpgradeManager : MonoBehaviour
             UpgradeDataSO pick = null;
             Rarity lastRoll = Rarity.Common;
 
-            // Несколько роллов редкости: если пул редкости пуст — роллим заново,
-            // а не падаем сразу в «любой»
             for (int attempt = 0; attempt < 4 && pick == null; attempt++)
             {
                 lastRoll = rarityConfig != null ? rarityConfig.Roll(floor) : Rarity.Common;
                 pick = PickByRarity(lastRoll, inOffer);
             }
 
-            // Фолбэки БЕЗ легендарок: легендарка только через прямой ролл
             if (pick == null) pick = PickAnyNonLegendary(inOffer);
             if (pick == null) pick = PickAny(inOffer);
             if (pick == null) break;
 
-            Debug.Log($"[DraftDebug] card {i + 1}: roll={lastRoll} → pick={pick.upgradeName} ({pick.rarity})");
+            Debug.Log($"[DraftDebug] OFFER card {i + 1}: roll={lastRoll} → {pick.upgradeName} ({pick.rarity})");
 
             result.Add(pick);
             inOffer.Add(pick);
@@ -129,24 +156,6 @@ public class UpgradeManager : MonoBehaviour
         return result.ToArray();
     }
 
-    /// <summary>
-    /// Выбор «что угодно» без легендарок — чтобы они не протекали
-    /// через фолбэк чаще, чем разрешают веса конфига.
-    /// </summary>
-    private UpgradeDataSO PickAnyNonLegendary(List<UpgradeDataSO> exclude)
-    {
-        List<UpgradeDataSO> pool = new List<UpgradeDataSO>();
-        foreach (var u in allUpgrades)
-        {
-            if (u == null || u.rarity == Rarity.Legendary || exclude.Contains(u)) continue;
-            pool.Add(u);
-        }
-        return pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
-    }
-
-    /// <summary>
-    // Если выпавшая редкость пуста — плавно падаем вниз (Common есть всегда).
-    /// </summary>
     private UpgradeDataSO PickByRarity(Rarity rarity, List<UpgradeDataSO> exclude)
     {
         for (int r = (int)rarity; r >= 0; r--)
@@ -164,6 +173,17 @@ public class UpgradeManager : MonoBehaviour
         return null;
     }
 
+    private UpgradeDataSO PickAnyNonLegendary(List<UpgradeDataSO> exclude)
+    {
+        List<UpgradeDataSO> pool = new List<UpgradeDataSO>();
+        foreach (var u in allUpgrades)
+        {
+            if (u == null || u.rarity == Rarity.Legendary || exclude.Contains(u)) continue;
+            pool.Add(u);
+        }
+        return pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
+    }
+
     private UpgradeDataSO PickAny(List<UpgradeDataSO> exclude)
     {
         List<UpgradeDataSO> pool = new List<UpgradeDataSO>();
@@ -176,9 +196,6 @@ public class UpgradeManager : MonoBehaviour
         return pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
     }
 
-    // ═══════════════════════════════════════
-    // Debug: проверка распределения без открытия UI
-    // ═══════════════════════════════════════
     private void LogRarityDistribution(int rolls)
     {
         if (rarityConfig == null)

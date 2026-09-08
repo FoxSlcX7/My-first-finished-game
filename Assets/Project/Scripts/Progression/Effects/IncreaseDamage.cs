@@ -4,5 +4,8 @@ using UnityEngine;
 public class IncreaseDamageEffect : UpgradeEffectBase
 {
     public float percent = 0.15f;
-    public override void Apply(PlayerStats stats) => stats.AddDamage(percent);
+
+    public override void Apply(PlayerStats stats, string source) =>
+        stats.AddModifier(StatType.Damage,
+            new StatModifier(percent, StatModifier.ModifierType.Multiply, source));
 }

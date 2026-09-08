@@ -21,6 +21,7 @@ public static class GameEvents
     // Прогрессия
     public static GameEvent OnLevelUp;
     public static IntPairGameEvent OnXPChanged;
+    public static IntGameEvent OnLevelUpPending;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Initialize()
@@ -37,6 +38,7 @@ public static class GameEvents
         OnComboCast = Resources.Load<ComboGameEvent>("Events/OnComboCast");
         OnLevelUp = Resources.Load<GameEvent>("Events/OnLevelUp");
         OnXPChanged = Resources.Load<IntPairGameEvent>("Events/OnXPChanged");
+        OnLevelUpPending = Resources.Load<IntGameEvent>("Events/OnLevelUpPendingEvent");
 
         Verify("OnHealthChangedEvent", OnHealthChanged);
         Verify("OnPlayerDamagedEvent", OnPlayerDamaged);
@@ -50,6 +52,7 @@ public static class GameEvents
         Verify("OnComboCast", OnComboCast);
         Verify("OnLevelUp", OnLevelUp);
         Verify("OnXPChanged", OnXPChanged);
+        Verify("OnLevelUpPendingEvent", OnLevelUpPending);
 
         Debug.Log("✅ GameEvents: все события загружены");
     }

@@ -7,12 +7,15 @@ public class UIUpgradePanel : MonoBehaviour
 
     private Action<UpgradeDataSO> _onPick;
 
-    private void Awake() => gameObject.SetActive(false);
+    // ВАЖНО: панель должна быть ВЫКЛЮЧЕНА в сцене (галочка off) — это её начальное состояние.
+    // Самоскрытия в Awake/Start НЕТ: у выключенного объекта они не выполняются,
+    // а при первой активации выстрелили бы посреди Show и погасили панель.
+    // Show/Hide полностью управляют активностью.
 
     public void Show(UpgradeDataSO[] choices, Action<UpgradeDataSO> onPick)
     {
         _onPick = onPick;
-        gameObject.SetActive(true);
+        gameObject.SetActive(true); // строго до настройки карточек
 
         for (int i = 0; i < cards.Length; i++)
         {
