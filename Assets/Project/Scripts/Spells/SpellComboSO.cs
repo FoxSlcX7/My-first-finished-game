@@ -21,6 +21,10 @@ public class SpellComboSO : ScriptableObject
     [Header("Knockback")]
     public float knockbackForce = 10f;
 
+    [Header("Combo Charge")]
+    [Tooltip("Сколько заряда (0–100 на сторону) даёт один каст слота. 25 = 4 каста.")]
+    public float chargePerCast = 25f;
+
     public bool Matches(ElementType a, ElementType b)
     {
         return (a == elementA && b == elementB) || (a == elementB && b == elementA);

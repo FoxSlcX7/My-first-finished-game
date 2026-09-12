@@ -64,6 +64,8 @@ public class DungeonDirector : MonoBehaviour
             if (i != startIndex && i != stairsIndex) candidates.Add(i);
         if (candidates.Count > 0) chestIndex = candidates[Random.Range(0, candidates.Count)];
 
+        List<RoomController> controllers = new List<RoomController>();
+
         for (int i = 0; i < rooms.Count; i++)
         {
             RoomRole role = RoomRole.Combat;
@@ -76,7 +78,10 @@ public class DungeonDirector : MonoBehaviour
             RoomController rc = roomObj.AddComponent<RoomController>();
             rc.Init(rooms[i], mapGenerator.FloorPositions, role, config);
             _roomObjects.Add(roomObj);
+            controllers.Add(rc);
         }
+
+        PlaceAltars(rooms, controllers, startIndex, stairsIndex);
 
         // Игрок — всегда в центр safe-комнаты, на каждом этаже
         PlacePlayerAt(rooms[startIndex].Center);
@@ -93,9 +98,6 @@ public class DungeonDirector : MonoBehaviour
 
         foreach (var enemy in FindObjectsByType<EnemyController>(FindObjectsInactive.Exclude))
             Destroy(enemy.gameObject);
-
-        foreach (var pickup in FindObjectsByType<SpellPickup>(FindObjectsInactive.Exclude))
-            Destroy(pickup.gameObject);
 
         ClearRoomObjects(); // вместе с детьми: блокеры, сундук, лестница
 
@@ -118,4 +120,43 @@ public class DungeonDirector : MonoBehaviour
             if (go != null) Destroy(go);
         _roomObjects.Clear();
     }
+
+    // ═══════════════════════════════════════
+    // Алтари: только в боевых/сундучных комнатах (НЕ в стартовой и НЕ в лестничной),
+    // родитель — комната (умирают при смене этажа),
+    // открываются только после зачистки своей комнаты.
+    // ═══════════════════════════════════════
+    private void PlaceAltars(List<Room> rooms, List<RoomController> controllers, int startIndex, int stairsIndex)
+    {
+        if (config.altarPrefab == null || config.altarSpellPool == null || config.altarSpellPool.Length == 0) return;
+
+        int count = Random.Range(config.altarCountMin, config.altarCountMax + 1);
+
+        List<int> candidates = new List<int>();
+        for (int i = 0; i < rooms.Count; i++)
+            if (i != startIndex && i != stairsIndex) candidates.Add(i);
+
+        for (int k = 0; k < count && candidates.Count > 0; k++)
+        {
+            int idx = candidates[Random.Range(0, candidates.Count)];
+            candidates.Remove(idx);
+
+            SpellSO spell = config.altarSpellPool[Random.Range(0, config.altarSpellPool.Length)];
+            RoomController rc = controllers[idx];
+
+            // Тайл рядом с центром, чтобы не пересекаться с сундуком/лестницей в центре
+            Vector2 worldPos = ToWorld(rooms[idx].Center + Vector2Int.right);
+
+            GameObject altar = Instantiate(config.altarPrefab, worldPos, Quaternion.identity, rc.transform);
+            SpellAltar altarComp = altar.GetComponent<SpellAltar>();
+            if (altarComp == null) continue;
+
+            altarComp.Init(spell);
+
+            if (rc.IsCleared) altarComp.Unlock();
+            else rc.OnRoomCleared += altarComp.Unlock;
+        }
+    }
+
+    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
 }

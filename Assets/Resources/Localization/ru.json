@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "key": "menu_play",
+      "value": "Играть"
+    },
+    {
+      "key": "menu_settings",
+      "value": "Настройки"
+    },
+    {
+      "key": "menu_exit",
+      "value": "Выход"
+    }
+  ]
+}

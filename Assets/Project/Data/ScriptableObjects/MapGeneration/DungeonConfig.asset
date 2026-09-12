@@ -17,14 +17,22 @@ MonoBehaviour:
   - {fileID: 4814479300201373233, guid: 7405401db592fc84e9716b427de2b18f, type: 3}
   - {fileID: 3894617289791534148, guid: 77478c81f2714cc4482ba77de19b0174, type: 3}
   - {fileID: 8843426434211922223, guid: 6237a4a804ce4744da4b6554feb380de, type: 3}
-  baseEnemyCount: 4
+  tilesPerEnemy: 6
+  minWaveCount: 2
+  maxWaveCount: 8
   enemyCountPerFloor: 1
   minWaveSpawnDistance: 3
   doorBlockerPrefab: {fileID: 1746865599526908858, guid: bac853fad59fe7240866456255f22a82, type: 3}
   chestPrefab: {fileID: 7728275198452818979, guid: 775b6f2909147e74cb571fee77237c5d, type: 3}
   stairsPrefab: {fileID: 3773707788242866811, guid: f1263ec6fa584ea47a8eda5ed1356005, type: 3}
-  rewardSpells:
+  waveStartDelay: 0.8
+  waveSpawnInterval: 0.9
+  waveBatchSize: 1
+  altarPrefab: {fileID: 1497246593513381262, guid: 907464c8bb1772b45bc4be3b0813ab7f, type: 3}
+  altarSpellPool:
   - {fileID: 11400000, guid: dad5de8e1ee84f9479215fb87cacdea5, type: 2}
   - {fileID: 11400000, guid: d223a07679df39e4ea20ac4266f5ae0b, type: 2}
   - {fileID: 11400000, guid: 2c56c5ab0afdfe8418588fe4ab55fed7, type: 2}
   - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
+  altarCountMin: 1
+  altarCountMax: 2

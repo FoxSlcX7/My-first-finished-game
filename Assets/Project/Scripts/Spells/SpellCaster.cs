@@ -8,13 +8,19 @@ public class SpellCaster : MonoBehaviour
 
     public event System.Action OnSpellCast;
     public event System.Action<bool> OnComboReadyChanged;
+    /// <summary>Заряд половин шкалы (A, B), 0..100. Для UI.</summary>
+    public event System.Action<float, float> OnComboChargeChanged;
 
     private SpellSO _slotA;
     private SpellSO _slotB;
     private float _nextSlotATime;
     private float _nextSlotBTime;
-    private float _nextComboTime;
+    private float _chargeA;
+    private float _chargeB;
     private bool _wasComboReady;
+
+    public float ChargeA => _chargeA;
+    public float ChargeB => _chargeB;
 
     private void Start()
     {
@@ -39,7 +45,7 @@ public class SpellCaster : MonoBehaviour
     }
 
     // ═══════════════════════════════════════
-    // ЛКМ → всегда кастует заклинание слота A
+    // Касты слотов: каждый каст заряжает свою половину шкалы
     // ═══════════════════════════════════════
     public void CastSlot1()
     {
@@ -47,56 +53,103 @@ public class SpellCaster : MonoBehaviour
 
         _nextSlotATime = Time.time + _slotA.cooldown * GetCooldownMult();
         CastBaseSpell(_slotA);
+        AddCharge(true);
         OnSpellCast?.Invoke();
     }
 
-    // ═══════════════════════════════════════
-    // ПКМ → всегда кастует заклинание слота B
-    // ═══════════════════════════════════════
     public void CastSlot2()
     {
         if (_slotB == null || Time.time < _nextSlotBTime) return;
 
         _nextSlotBTime = Time.time + _slotB.cooldown * GetCooldownMult();
         CastBaseSpell(_slotB);
+        AddCharge(false);
         OnSpellCast?.Invoke();
     }
 
     // ═══════════════════════════════════════
-    // Space/Q → кастует комбо, если доступно
+    // Комбо: доступно ТОЛЬКО при обеих полных половинах
     // ═══════════════════════════════════════
     public void CastCombo()
     {
-        SpellComboSO combo = GetActiveCombo();
-        if (combo == null || Time.time < _nextComboTime) return;
+        if (!IsComboReady()) return;
 
-        _nextComboTime = Time.time + combo.cooldown * GetCooldownMult();
+        SpellComboSO combo = GetActiveCombo();
         SpawnComboProjectile(combo);
+
+        _chargeA = 0f;
+        _chargeB = 0f;
+        RaiseCharge();
 
         GameEvents.OnComboCast?.Raise(combo);
         OnSpellCast?.Invoke();
     }
 
-    // ═══════════════════════════════════════
-    // Для UI: доступно ли комбо прямо сейчас?
-    // ═══════════════════════════════════════
     public bool IsComboReady()
     {
-        return GetActiveCombo() != null && Time.time >= _nextComboTime;
+        return GetActiveCombo() != null && _chargeA >= 100f && _chargeB >= 100f;
     }
 
     // ═══════════════════════════════════════
-    // Внутренняя логика
+    // Слоты: установка из UI алтаря, БЕЗ автозамены.
+    // Смена заклинания сбрасывает заряд (по плану).
+    // ═══════════════════════════════════════
+    public void SetSlotA(SpellSO spell)
+    {
+        if (spell == null) return;
+        _slotA = spell;
+        ResetCharge();
+        GameEvents.OnSlotAChanged?.Raise(_slotA);
+        RefreshComboState();
+    }
+
+    public void SetSlotB(SpellSO spell)
+    {
+        if (spell == null) return;
+        _slotB = spell;
+        ResetCharge();
+        GameEvents.OnSlotBChanged?.Raise(_slotB);
+        RefreshComboState();
+    }
+
+    public SpellSO GetSlotA() => _slotA;
+    public SpellSO GetSlotB() => _slotB;
+
+    // ═══════════════════════════════════════
+    // Заряд
+    // ═══════════════════════════════════════
+    private void AddCharge(bool slotA)
+    {
+        SpellComboSO combo = GetActiveCombo();
+        if (combo == null) return; // нет совместимости — заряжать нечего
+
+        if (slotA) _chargeA = Mathf.Min(100f, _chargeA + combo.chargePerCast);
+        else _chargeB = Mathf.Min(100f, _chargeB + combo.chargePerCast);
+        RaiseCharge();
+    }
+
+    private void ResetCharge()
+    {
+        _chargeA = 0f;
+        _chargeB = 0f;
+        RaiseCharge();
+        _wasComboReady = IsComboReady();
+    }
+
+    private void RaiseCharge() => OnComboChargeChanged?.Invoke(_chargeA, _chargeB);
+
+    private float GetCooldownMult()
+    {
+        return PlayerStats.Instance != null ? PlayerStats.Instance.CooldownMultiplier : 1f;
+    }
+
+    // ═══════════════════════════════════════
+    // Внутренняя логика (без изменений)
     // ═══════════════════════════════════════
     private SpellComboSO GetActiveCombo()
     {
         if (comboDatabase == null || _slotA == null || _slotB == null) return null;
         return comboDatabase.FindCombo(_slotA.element, _slotB.element);
-    }
-
-    private float GetCooldownMult()
-    {
-        return PlayerStats.Instance != null ? PlayerStats.Instance.CooldownMultiplier : 1f;
     }
 
     private void RefreshComboState()
@@ -132,39 +185,10 @@ public class SpellCaster : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Поворачивает только firePoint к курсору.
-    /// Вызывается из PlayerController каждый кадр.
-    /// </summary>
     public void SetAimDirection(Vector2 direction)
     {
         if (firePoint == null) return;
-
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         firePoint.rotation = Quaternion.Euler(0, 0, angle);
     }
-
-    public void EquipSpell(SpellSO spell)
-    {
-        if (_slotA == null)
-        {
-            _slotA = spell;
-        }
-        else if (_slotB == null)
-        {
-            _slotB = spell;
-        }
-        else
-        {
-            _slotB = _slotA;
-            _slotA = spell;
-        }
-
-        GameEvents.OnSlotAChanged?.Raise(_slotA);
-        GameEvents.OnSlotBChanged?.Raise(_slotB);
-        RefreshComboState();
-    }
-
-    public SpellSO GetSlotA() => _slotA;
-    public SpellSO GetSlotB() => _slotB;
 }

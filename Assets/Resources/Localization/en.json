@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "key": "menu_play",
+      "value": "Play"
+    },
+    {
+      "key": "menu_settings",
+      "value": "Settings"
+    },
+    {
+      "key": "menu_exit",
+      "value": "Exit"
+    }
+  ]
+}

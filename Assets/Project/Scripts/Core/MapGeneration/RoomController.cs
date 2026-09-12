@@ -16,6 +16,9 @@ public class RoomController : MonoBehaviour
     [Tooltip("Если врага унесло дальше этого расстояния — аварийный телепорт.")]
     [SerializeField] private float hardLeashDistance = 2.5f;
 
+    public event System.Action OnRoomCleared;
+    public bool IsCleared => _cleared;
+
     private Room _room;
     private HashSet<Vector2Int> _globalFloor;
     private RoomRole _role;
@@ -323,8 +326,7 @@ public class RoomController : MonoBehaviour
         {
             if (_config.chestPrefab != null)
             {
-                GameObject chest = Instantiate(_config.chestPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
-                chest.GetComponent<Chest>()?.Init(_config.rewardSpells);
+                Instantiate(_config.chestPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
                 Debug.Log($"[RoomController] Комната {_room.Center} зачищена — сундук заспавнен.");
             }
             else
@@ -332,6 +334,8 @@ public class RoomController : MonoBehaviour
                 Debug.LogWarning("[RoomController] Комната зачищена, но в DungeonConfig НЕ назначен chestPrefab!");
             }
         }
+
+        OnRoomCleared?.Invoke();
     }
 
     private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);

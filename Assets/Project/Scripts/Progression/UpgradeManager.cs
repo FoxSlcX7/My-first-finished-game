@@ -13,6 +13,8 @@ public class UpgradeManager : MonoBehaviour
     [Header("Debug (выключить перед релизом)")]
     [SerializeField] private bool debugKeysEnabled = true;
 
+    public bool IsShowing => _showing;
+
     private readonly HashSet<UpgradeDataSO> _takenLegendaries = new();
     private int _pendingOffers;
     private bool _showing;
@@ -29,13 +31,13 @@ public class UpgradeManager : MonoBehaviour
     private void Subscribe()
     {
         if (GameEvents.OnLevelUp == null) return;
-        GameEvents.OnLevelUp.RemoveListener(HandleLevelUp);
-        GameEvents.OnLevelUp.AddListener(HandleLevelUp);
+        GameEvents.OnLevelUp.RemoveListener(GrantUpgradeOffer);
+        GameEvents.OnLevelUp.AddListener(GrantUpgradeOffer);
     }
 
     private void OnDisable()
     {
-        GameEvents.OnLevelUp?.RemoveListener(HandleLevelUp);
+        GameEvents.OnLevelUp?.RemoveListener(GrantUpgradeOffer);
     }
 
     private void Update()
@@ -50,7 +52,7 @@ public class UpgradeManager : MonoBehaviour
 
         // U — debug: начислить очко апгрейда
         if (Keyboard.current.uKey.wasPressedThisFrame)
-            HandleLevelUp();
+            GrantUpgradeOffer();
 
         // P — лог распределения редкостей
         if (Keyboard.current.pKey.wasPressedThisFrame)
@@ -76,7 +78,11 @@ public class UpgradeManager : MonoBehaviour
     // ═══════════════════════════════════════
     // Level up теперь КОПИТСЯ, окно открывается по требованию
     // ═══════════════════════════════════════
-    private void HandleLevelUp()
+    /// <summary>
+    /// Начисляет выбор апгрейда: level up (из события) или сундук.
+    /// Окно НЕ открывает — игрок откроет сам (TAB / кнопка HUD).
+    /// </summary>
+    public void GrantUpgradeOffer()
     {
         _pendingOffers++;
         RaisePending();

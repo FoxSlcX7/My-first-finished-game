@@ -19,7 +19,7 @@ public class DungeonConfigSO : ScriptableObject
     public GameObject stairsPrefab;
 
     [Header("Награда из сундука")]
-    public SpellSO[] rewardSpells;
+    
 
     [Header("Пейсинг волны")]
     [Tooltip("Задержка до первого врага волны (сек).")]
@@ -28,4 +28,10 @@ public class DungeonConfigSO : ScriptableObject
     public float waveSpawnInterval = 0.9f;
     [Tooltip("Сколько врагов выходит за один батч.")]
     public int waveBatchSize = 1;
+
+    [Header("Алтари")]
+    public GameObject altarPrefab;
+    public SpellSO[] altarSpellPool;
+    public int altarCountMin = 1;
+    public int altarCountMax = 2;
 }
