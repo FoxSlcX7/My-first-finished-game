@@ -84,7 +84,13 @@ public class EnemySpawner : MonoBehaviour
 
         if (prefab != null)
         {
-            Instantiate(prefab, spawnPos.Value, Quaternion.identity);
+            EnemyController enemy = Instantiate(prefab, spawnPos.Value, Quaternion.identity);
+
+            if (BalanceManager.Instance != null)
+            {
+                enemy.ApplyBalance(BalanceManager.Instance.Config, BalanceManager.Instance.CurrentFloor);
+            }
+
             _activeEnemies++;
         }
     }

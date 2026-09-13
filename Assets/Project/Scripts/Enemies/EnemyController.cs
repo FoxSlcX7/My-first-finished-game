@@ -14,9 +14,10 @@ public class EnemyController : MonoBehaviour
     private float _nextShootTime;
     private float _nextKnockbackTime;
     private float _staggerEndTime;
+    private EnemyDataSO _runtimeData;
 
     // Публичные свойства для состояний
-    public EnemyDataSO Data => data;
+    public EnemyDataSO Data => _runtimeData;
     public Health Health => _health;
     public Rigidbody2D Rb => _rb;
     public Transform Player => _player;
@@ -25,6 +26,8 @@ public class EnemyController : MonoBehaviour
 
     private void Awake()
     {
+        if (data != null) _runtimeData = Instantiate(data); // Создаем уникальную копию для этого врага
+
         _health = GetComponent<Health>();
         _rb = GetComponent<Rigidbody2D>();
         _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
@@ -34,7 +37,7 @@ public class EnemyController : MonoBehaviour
 
     private void Start()
     {
-        if (data == null)
+        if (_runtimeData == null)
         {
             Debug.LogError($"EnemyController: не назначен EnemyDataSO на {gameObject.name}!");
             return;
@@ -42,7 +45,9 @@ public class EnemyController : MonoBehaviour
 
         _player = GameManager.Instance?.PlayerTransform;
         _health.OnDeath += HandleDeath;
-        _health.Initialize(data.maxHealth);
+
+        // Берем уже отскалированное ХП
+        _health.Initialize(_runtimeData.maxHealth);
         SetState(new IdleState());
         ApplyVisuals();
     }
@@ -81,9 +86,9 @@ public class EnemyController : MonoBehaviour
         if (IsStaggered) return;
 
         Vector2 direction = ((Vector2)_player.position - (Vector2)transform.position).normalized;
-        Vector2 targetVelocity = direction * data.moveSpeed;
+        Vector2 targetVelocity = direction * _runtimeData.moveSpeed;
         Vector2 velocityChange = targetVelocity - _rb.linearVelocity;
-        _rb.AddForce(velocityChange * data.acceleration, ForceMode2D.Force);
+        _rb.AddForce(velocityChange * _runtimeData.acceleration, ForceMode2D.Force);
     }
 
     public void StopMovement()
@@ -94,26 +99,27 @@ public class EnemyController : MonoBehaviour
 
     public void TryDealContactDamage()
     {
-        if (Time.time - _lastDamageTime < data.damageCooldown) return;
+        if (Time.time - _lastDamageTime < _runtimeData.damageCooldown) return;
         if (_player == null) return;
 
         Health playerHealth = _player.GetComponent<Health>();
         if (playerHealth != null)
         {
-            playerHealth.TakeDamage(data.contactDamage);
+            // Берем уже отскалированный урон
+            playerHealth.TakeDamage(_runtimeData.contactDamage);
             _lastDamageTime = Time.time;
 
             Vector2 dir = (_player.position - transform.position).normalized;
             PlayerController pc = _player.GetComponent<PlayerController>();
             if (pc != null)
-                pc.ApplyKnockback(dir, data.contactKnockbackForce);
+                pc.ApplyKnockback(dir, _runtimeData.contactKnockbackForce);
         }
     }
 
     public bool TryShoot()
     {
         if (Time.time < _nextShootTime) return false;
-        _nextShootTime = Time.time + data.shootInterval;
+        _nextShootTime = Time.time + _runtimeData.shootInterval;
         return true;
     }
 
@@ -122,15 +128,15 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     public void ApplyKnockback(Vector2 direction, float force)
     {
-        if (data == null) return;
+        if (_runtimeData == null) return;
         if (Time.time < _nextKnockbackTime) return; // защита от частых попаданий
 
-        float actualForce = force * (1f - data.knockbackResistance);
+        float actualForce = force * (1f - _runtimeData.knockbackResistance);
         if (actualForce <= 0f) return;
 
         _rb.AddForce(direction.normalized * actualForce, ForceMode2D.Impulse);
-        _nextKnockbackTime = Time.time + data.knockbackCooldown;
-        _staggerEndTime = Time.time + data.knockbackStagger;
+        _nextKnockbackTime = Time.time + _runtimeData.knockbackCooldown;
+        _staggerEndTime = Time.time + _runtimeData.knockbackStagger;
     }
 
     /// <summary>
@@ -138,7 +144,7 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     public IEnemyState GetAttackState()
     {
-        return data.type switch
+        return _runtimeData.type switch
         {
             EnemyType.Ranged => new RangedAttackState(),
             _ => new AttackState() // Melee и Flying пока используют контактный урон
@@ -160,16 +166,32 @@ public class EnemyController : MonoBehaviour
             return;
         }
 
-        if (data.sprite != null)
+        if (_runtimeData.sprite != null)
         {
-            sr.sprite = data.sprite;
+            sr.sprite = _runtimeData.sprite;
         }
 
-        sr.color = data.color;
+        sr.color = _runtimeData.color;
 
-        if (data.spriteScale != Vector3.one && data.spriteScale != Vector3.zero)
+        if (_runtimeData.spriteScale != Vector3.one && _runtimeData.spriteScale != Vector3.zero)
         {
-            transform.localScale = data.spriteScale;
+            transform.localScale = _runtimeData.spriteScale;
         }
+    }
+
+    public void ApplyBalance(BalanceConfig config, int floor)
+    {
+        if (config == null || _runtimeData == null) return;
+
+        float hpMult = config.GetEnemyHealthMultiplier(floor);
+        float dmgMult = config.GetEnemyDamageMultiplier(floor);
+
+        // Применяем скалирование ТОЛЬКО к клону. 
+        // Формула опирается на базовый 'data', чтобы избежать геометрической прогрессии багов.
+        _runtimeData.maxHealth = Mathf.Max(1, Mathf.RoundToInt(data.maxHealth * hpMult));
+        _runtimeData.contactDamage = Mathf.Max(1, Mathf.RoundToInt(data.contactDamage * dmgMult));
+
+        // В будущем для добавления скорости понадобится лишь одна строка здесь:
+        // _runtimeData.moveSpeed = data.moveSpeed * config.GetEnemySpeedMultiplier(floor);
     }
 }

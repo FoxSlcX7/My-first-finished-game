@@ -40,4 +40,10 @@ public class XPOrb : MonoBehaviour
         other.GetComponent<PlayerXP>()?.AddXP(xpValue);
         Destroy(gameObject);
     }
+
+    public void MultiplyValue(float multiplier)
+    {
+        // Умножаем базовое значение префаба (например, 1) на множитель баланса
+        xpValue = Mathf.Max(1, Mathf.RoundToInt(xpValue * multiplier));
+    }
 }

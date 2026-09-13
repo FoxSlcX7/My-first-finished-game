@@ -4,12 +4,18 @@ public class PlayerXP : MonoBehaviour
 {
     public static PlayerXP Instance { get; private set; }
 
-    [SerializeField] private int baseRequired = 5;
-    [SerializeField] private int growthPerLevel = 3;
+    [SerializeField] private BalanceConfig _balanceConfig;
 
     public int Level { get; private set; } = 1;
     public int CurrentXP { get; private set; }
-    public int RequiredXP => baseRequired + (Level - 1) * growthPerLevel;
+    public int RequiredXP
+    {
+        get
+        {
+            if (_balanceConfig != null) return (int)_balanceConfig.GetXpForNextLevel(Level);
+            return 5 + (Level - 1) * 3; // Базовый фоллбэк
+        }
+    }
 
     private void Awake()
     {

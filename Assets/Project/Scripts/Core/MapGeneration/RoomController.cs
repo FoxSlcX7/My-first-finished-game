@@ -231,6 +231,12 @@ public class RoomController : MonoBehaviour
 
         EnemyController prefab = _config.wavePrefabs[Random.Range(0, _config.wavePrefabs.Length)];
         EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
+
+        if (BalanceManager.Instance != null)
+        {
+            enemy.ApplyBalance(BalanceManager.Instance.Config, BalanceManager.Instance.CurrentFloor);
+        }
+
         enemy.Health.OnDeath += () => OnWaveEnemyDied(enemy);
         _waveEnemies.Add(enemy);
         _aliveCount++;
