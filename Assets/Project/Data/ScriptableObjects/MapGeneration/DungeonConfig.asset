@@ -36,3 +36,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8841075470aefd5428fb0a1699a13243, type: 2}
   altarCountMin: 1
   altarCountMax: 2
+  balanceConfig: {fileID: 11400000, guid: 184cfa8dd003dfb41833c3f892a310a2, type: 2}

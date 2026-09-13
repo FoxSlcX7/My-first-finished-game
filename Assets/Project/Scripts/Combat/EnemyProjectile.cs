@@ -15,10 +15,11 @@ public class EnemyProjectile : MonoBehaviour
     private Vector2 _direction;
     private float _timer;
 
-    public void Init(Vector2 direction)
+    public void Init(Vector2 direction, int scaledDamage = -1)
     {
         _direction = direction.normalized;
         _timer = 0f;
+        if (scaledDamage > 0) damage = scaledDamage;
     }
 
     private void Update()

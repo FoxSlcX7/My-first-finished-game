@@ -34,4 +34,7 @@ public class DungeonConfigSO : ScriptableObject
     public SpellSO[] altarSpellPool;
     public int altarCountMin = 1;
     public int altarCountMax = 2;
+
+    [Header("Баланс")]
+    public BalanceConfig balanceConfig;
 }

@@ -50,7 +50,7 @@ public class RangedAttackState : IEnemyState
         EnemyProjectile projectile = proj.GetComponent<EnemyProjectile>();
         if (projectile != null)
         {
-            projectile.Init(direction);
+            projectile.Init(direction, _enemy.Data.contactDamage);
         }
     }
 }

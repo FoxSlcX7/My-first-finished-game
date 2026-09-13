@@ -176,7 +176,8 @@ public class SpellCaster : MonoBehaviour
         projectile.transform.position = firePoint.position;
         projectile.transform.rotation = firePoint.rotation;
         projectile.Init(firePoint.right);
-        projectile.SetStats(combo.projectileSpeed, combo.lifetime, combo.damage, combo.knockbackForce);
+        int scaledDamage = PlayerStats.ScaleDamage(combo.damage);
+        projectile.SetStats(combo.projectileSpeed, combo.lifetime, scaledDamage, combo.knockbackForce);
 
         SpriteRenderer sr = projectile.GetComponent<SpriteRenderer>();
         if (sr != null)

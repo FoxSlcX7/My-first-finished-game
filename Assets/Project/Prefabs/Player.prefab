@@ -433,8 +433,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17ec575951a21bd41aee865bf2733da2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerXP
-  baseRequired: 5
-  growthPerLevel: 3
+  _balanceConfig: {fileID: 11400000, guid: 184cfa8dd003dfb41833c3f892a310a2, type: 2}
 --- !u!1 &7570200876987704720
 GameObject:
   m_ObjectHideFlags: 0

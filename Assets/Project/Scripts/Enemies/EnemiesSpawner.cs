@@ -22,6 +22,9 @@ public class EnemySpawner : MonoBehaviour
     [Header("Ambient")]
     [SerializeField] private bool ambientSpawnEnabled = true;
 
+    [Header("Balance")]
+    [SerializeField] private BalanceConfig balanceConfig;
+
     private float _timer;
     private int _activeEnemies;
     private List<Vector2Int> _validSpawnPoints;
@@ -86,9 +89,10 @@ public class EnemySpawner : MonoBehaviour
         {
             EnemyController enemy = Instantiate(prefab, spawnPos.Value, Quaternion.identity);
 
-            if (BalanceManager.Instance != null)
+            int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+            if (balanceConfig != null)
             {
-                enemy.ApplyBalance(BalanceManager.Instance.Config, BalanceManager.Instance.CurrentFloor);
+                enemy.ApplyBalance(balanceConfig, floor);
             }
 
             _activeEnemies++;

@@ -1449,6 +1449,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   ambientSpawnEnabled: 0
+  balanceConfig: {fileID: 11400000, guid: 184cfa8dd003dfb41833c3f892a310a2, type: 2}
 --- !u!1 &506448417
 GameObject:
   m_ObjectHideFlags: 0
@@ -7607,10 +7608,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5666600728106796774, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
-      propertyPath: _balanceConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: 184cfa8dd003dfb41833c3f892a310a2, type: 2}
     - target: {fileID: 7570200876987704720, guid: ceaaf817ccf27a845ae3c6636a87915b, type: 3}
       propertyPath: m_Layer
       value: 0

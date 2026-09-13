@@ -5,14 +5,22 @@ public static class SaveSystem
 {
     public static SaveData Data { get; private set; }
 
-    // Путь к файлу сохранения (универсальный для всех платформ)
-    private static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+    // Стратегия сериализации по умолчанию (JSON).
+    // При переходе на бинарный формат достаточно сменить реализацию здесь.
+    private static ISaveSerializer _serializer = new JsonSaveSerializer();
 
-    // Загружаем сохранение ДО старта сцены
+    private static string SavePath => Path.Combine(Application.persistentDataPath, $"save.{_serializer.FileExtension}");
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Init()
     {
         Load();
+    }
+
+    public static void SetSerializer(ISaveSerializer serializer)
+    {
+        if (serializer == null) return;
+        _serializer = serializer;
     }
 
     public static void Load()
@@ -21,13 +29,11 @@ public static class SaveSystem
         {
             try
             {
-                string json = File.ReadAllText(SavePath);
-                Data = JsonUtility.FromJson<SaveData>(json);
-                Debug.Log("💾 SaveSystem: сохранение загружено");
+                Data = _serializer.Load<SaveData>(SavePath);
+                Debug.Log($"💾 SaveSystem: сохранение загружено ({_serializer.FileExtension})");
             }
             catch (System.Exception e)
             {
-                // Edge case из плана: повреждённое сохранение не должно ронять игру
                 Debug.LogError($"💾 Сохранение повреждено, создаю новое: {e.Message}");
                 Data = new SaveData();
             }
@@ -41,9 +47,15 @@ public static class SaveSystem
 
     public static void Save()
     {
-        string json = JsonUtility.ToJson(Data, true); // true = красивый формат
-        File.WriteAllText(SavePath, json);
-        Debug.Log("💾 SaveSystem: игра сохранена");
+        try
+        {
+            _serializer.Save(SavePath, Data);
+            Debug.Log($"💾 SaveSystem: игра сохранена ({_serializer.FileExtension})");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"💾 Ошибка при сохранении игры: {e.Message}");
+        }
     }
 
     public static void UnlockSpell(string spellId)

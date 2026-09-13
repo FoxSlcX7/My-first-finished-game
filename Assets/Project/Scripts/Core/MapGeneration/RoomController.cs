@@ -232,9 +232,10 @@ public class RoomController : MonoBehaviour
         EnemyController prefab = _config.wavePrefabs[Random.Range(0, _config.wavePrefabs.Length)];
         EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
 
-        if (BalanceManager.Instance != null)
+        int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+        if (_config != null && _config.balanceConfig != null)
         {
-            enemy.ApplyBalance(BalanceManager.Instance.Config, BalanceManager.Instance.CurrentFloor);
+            enemy.ApplyBalance(_config.balanceConfig, floor);
         }
 
         enemy.Health.OnDeath += () => OnWaveEnemyDied(enemy);
