@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RoomRole { Safe, Combat, Chest, Stairs }
+public enum RoomRole { Safe, Combat, Chest, Stairs, Boss }
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class RoomController : MonoBehaviour
@@ -115,7 +115,16 @@ public class RoomController : MonoBehaviour
         if (!IsPlayerDeepInside()) return;
 
         _activated = true;
-        SpawnWave();
+
+        if (_role == RoomRole.Boss)
+        {
+            SpawnBoss();
+        }
+        else
+        {
+            SpawnWave();
+        }
+
         _lockRoutine = StartCoroutine(LockDoors());
     }
 
@@ -182,6 +191,35 @@ public class RoomController : MonoBehaviour
 
         _remainingToSpawn = count;
         _spawnRoutine = StartCoroutine(SpawnWaveRoutine());
+    }
+
+    private void SpawnBoss()
+    {
+        if (_config.bossPrefab == null)
+        {
+            ClearRoom();
+            return;
+        }
+
+        Vector2 spawnPos = ToWorld(_room.Center);
+        EnemyController boss = Instantiate(_config.bossPrefab, spawnPos, Quaternion.identity, transform);
+
+        int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+        if (_config.balanceConfig != null)
+        {
+            boss.ApplyBalance(_config.balanceConfig, floor);
+        }
+
+        boss.Health.OnDeath += () =>
+        {
+            _waveEnemies.Remove(boss);
+            _aliveCount = 0;
+            _remainingToSpawn = 0;
+            ClearRoom();
+        };
+
+        _waveEnemies.Add(boss);
+        _aliveCount = 1;
     }
 
     private IEnumerator SpawnWaveRoutine()
@@ -340,6 +378,12 @@ public class RoomController : MonoBehaviour
             {
                 Debug.LogWarning("[RoomController] Комната зачищена, но в DungeonConfig НЕ назначен chestPrefab!");
             }
+        }
+
+        if (_role == RoomRole.Boss && _config.stairsPrefab != null)
+        {
+            Instantiate(_config.stairsPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
+            Debug.Log("[RoomController] Босс повержен! Заспавнена лестница.");
         }
 
         OnRoomCleared?.Invoke();

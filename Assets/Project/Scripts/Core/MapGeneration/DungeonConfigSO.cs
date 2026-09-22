@@ -37,4 +37,7 @@ public class DungeonConfigSO : ScriptableObject
 
     [Header("Баланс")]
     public BalanceConfig balanceConfig;
+
+    [Header("Боссы")]
+    public EnemyController bossPrefab;
 }

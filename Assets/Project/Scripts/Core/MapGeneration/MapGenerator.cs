@@ -6,17 +6,23 @@ public class MapGenerator : MonoBehaviour
 {
     public event System.Action OnMapGenerated;
 
-    [Header("Map Size")]
-    [SerializeField] private int mapWidth = 60;
-    [SerializeField] private int mapHeight = 60;
+    [Header("Размеры подземелья")]
+    [SerializeField] private int mapWidth = 80;
+    [SerializeField] private int mapHeight = 80;
 
-    [Header("Rooms")]
+    [Header("Настройки комнат")]
+    [Tooltip("Количество комнат на этаже")]
     [SerializeField] private int roomCountMin = 6;
-    [SerializeField] private int roomCountMax = 9;
-    [SerializeField] private int roomMinSize = 5;
-    [SerializeField] private int roomMaxSize = 9;
+    [SerializeField] private int roomCountMax = 8;
 
-    [Header("References")]
+    [Tooltip("Минимальный и максимальный размер боевой комнаты (тайлы)")]
+    [SerializeField] private int roomMinSize = 12;
+    [SerializeField] private int roomMaxSize = 18;
+
+    [Tooltip("Минимальное расстояние между центрами комнат")]
+    [SerializeField] private int minDistanceBetweenRooms = 18;
+
+    [Header("Ссылки")]
     [SerializeField] private MapVisualizer visualizer;
 
     private HashSet<Vector2Int> _floorPositions;
@@ -24,7 +30,6 @@ public class MapGenerator : MonoBehaviour
     private List<Room> _rooms;
     private BoundsInt _bounds;
 
-    // Лук-апы для A*: какой тайл какой комнате принадлежит + «кольцо» вокруг комнат
     private readonly Dictionary<Vector2Int, int> _roomAt = new();
     private readonly HashSet<Vector2Int> _roomRing = new();
 
@@ -47,7 +52,7 @@ public class MapGenerator : MonoBehaviour
 
         CarveRooms();
         BuildRoomLookup();
-        ConnectRooms();
+        ConnectRoomsSmarter(); // Умное соединение ближайших соседей
         FixDiagonalPinches();
         RemoveUnreachableFloor();
         GenerateWalls();
@@ -55,49 +60,63 @@ public class MapGenerator : MonoBehaviour
         visualizer.PaintFloor(_floorPositions);
         visualizer.PaintWalls(_wallPositions);
 
-        Debug.Log($"[MapGenerator] Пол: {_floorPositions.Count} тайлов, комнат: {_rooms.Count}");
+        Debug.Log($"[MapGenerator] Готово! Пол: {_floorPositions.Count} тайлов, комнат: {_rooms.Count}");
         OnMapGenerated?.Invoke();
     }
 
     // ═══════════════════════════════════════
-    // Комнаты: первая всегда в (0,0), остальные разбросаны с дистанцией
+    // 1. Создание просторных комнат
     // ═══════════════════════════════════════
     private void CarveRooms()
     {
-        int roomCount = Random.Range(roomCountMin, roomCountMax + 1);
-        int minDist = roomMaxSize + 3;
-
+        int targetRooms = Random.Range(roomCountMin, roomCountMax + 1);
         List<Vector2Int> centers = new List<Vector2Int> { Vector2Int.zero };
 
         int attempts = 0;
-        while (centers.Count < roomCount && attempts < 300)
+        int maxAttempts = 500;
+
+        while (centers.Count < targetRooms && attempts < maxAttempts)
         {
             attempts++;
+            int padding = roomMaxSize;
             Vector2Int candidate = new Vector2Int(
-                Random.Range(_bounds.xMin + roomMaxSize, _bounds.xMax - roomMaxSize + 1),
-                Random.Range(_bounds.yMin + roomMaxSize, _bounds.yMax - roomMaxSize + 1));
+                Random.Range(_bounds.xMin + padding, _bounds.xMax - padding),
+                Random.Range(_bounds.yMin + padding, _bounds.yMax - padding));
 
-            bool ok = true;
+            bool canPlace = true;
             foreach (var c in centers)
             {
-                if ((candidate - c).sqrMagnitude < minDist * minDist) { ok = false; break; }
+                if (Vector2Int.Distance(candidate, c) < minDistanceBetweenRooms)
+                {
+                    canPlace = false;
+                    break;
+                }
             }
-            if (ok) centers.Add(candidate);
+
+            if (canPlace) centers.Add(candidate);
         }
 
-        foreach (var center in centers)
+        for (int i = 0; i < centers.Count; i++)
         {
-            int size = Random.Range(roomMinSize, roomMaxSize + 1);
-            int halfSize = size / 2;
+            Vector2Int center = centers[i];
+
+            // Первая комната (стартовая) чуть компактнее, остальные — просторные арены
+            int sizeX = (i == 0) ? 12 : Random.Range(roomMinSize, roomMaxSize + 1);
+            int sizeY = (i == 0) ? 12 : Random.Range(roomMinSize, roomMaxSize + 1);
+
+            int halfX = sizeX / 2;
+            int halfY = sizeY / 2;
+
             HashSet<Vector2Int> roomFloor = new HashSet<Vector2Int>();
 
-            for (int x = -halfSize; x <= halfSize; x++)
+            for (int x = -halfX; x <= halfX; x++)
             {
-                for (int y = -halfSize; y <= halfSize; y++)
+                for (int y = -halfY; y <= halfY; y++)
                 {
                     Vector2Int pos = center + new Vector2Int(x, y);
-                    pos.x = Mathf.Clamp(pos.x, _bounds.xMin, _bounds.xMax - 1);
-                    pos.y = Mathf.Clamp(pos.y, _bounds.yMin, _bounds.yMax - 1);
+                    pos.x = Mathf.Clamp(pos.x, _bounds.xMin + 1, _bounds.xMax - 2);
+                    pos.y = Mathf.Clamp(pos.y, _bounds.yMin + 1, _bounds.yMax - 2);
+
                     roomFloor.Add(pos);
                     _floorPositions.Add(pos);
                 }
@@ -113,62 +132,106 @@ public class MapGenerator : MonoBehaviour
         _roomRing.Clear();
 
         for (int i = 0; i < _rooms.Count; i++)
+        {
             foreach (var t in _rooms[i].FloorPositions)
                 _roomAt[t] = i;
+        }
 
         foreach (var t in _roomAt.Keys.ToList())
         {
             for (int dx = -1; dx <= 1; dx++)
+            {
                 for (int dy = -1; dy <= 1; dy++)
                 {
                     Vector2Int n = t + new Vector2Int(dx, dy);
                     if (!_roomAt.ContainsKey(n))
                         _roomRing.Add(n);
                 }
-        }
-    }
-
-    // ═══════════════════════════════════════
-    // Коридоры: A* обходит чужие комнаты и не липнет к их стенам
-    // ═══════════════════════════════════════
-    private void ConnectRooms()
-    {
-        if (_rooms.Count < 2) return;
-
-        for (int i = 0; i < _rooms.Count - 1; i++)
-        {
-            int a = i, b = i + 1;
-            List<Vector2Int> path = FindPath(_rooms[a].Center, _rooms[b].Center, a, b);
-
-            foreach (var t in path)
-            {
-                if (!_roomAt.ContainsKey(t))
-                    _floorPositions.Add(t);
-
-                // Расширение до 3 тайлов, но НЕ впритык к чужим комнатам
-                Vector2Int[] nbs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-                foreach (var n in nbs)
-                {
-                    Vector2Int w = t + n;
-                    if (!_bounds.Contains(new Vector3Int(w.x, w.y, 0))) continue;
-                    if (_roomAt.ContainsKey(w)) continue;      // не заходим в комнаты
-                    if (TouchesOtherRoom(w, a, b)) continue;   // не клеимся к чужим
-                    _floorPositions.Add(w);
-                }
             }
         }
     }
 
-    private static float Heuristic(Vector2Int a, Vector2Int b)
-        => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+    // ═══════════════════════════════════════
+    // 2. Умное соединение (MST / Ближайшие соседи)
+    // Больше никаких бесконечных кишок через всю карту!
+    // ═══════════════════════════════════════
+    private void ConnectRoomsSmarter()
+    {
+        if (_rooms.Count < 2) return;
+
+        List<int> connected = new List<int> { 0 };
+        List<int> unconnected = Enumerable.Range(1, _rooms.Count - 1).ToList();
+
+        // Соединяем дерево минимальных путей (Prim's algorithm)
+        while (unconnected.Count > 0)
+        {
+            float shortestDist = float.MaxValue;
+            int bestFrom = -1;
+            int bestTo = -1;
+
+            foreach (int u in connected)
+            {
+                foreach (int v in unconnected)
+                {
+                    float dist = Vector2Int.Distance(_rooms[u].Center, _rooms[v].Center);
+                    if (dist < shortestDist)
+                    {
+                        shortestDist = dist;
+                        bestFrom = u;
+                        bestTo = v;
+                    }
+                }
+            }
+
+            if (bestFrom != -1 && bestTo != -1)
+            {
+                BuildCorridorPath(bestFrom, bestTo);
+                connected.Add(bestTo);
+                unconnected.Remove(bestTo);
+            }
+            else break;
+        }
+
+        // Дополнительный луп (1 случайная перемычка), чтобы подземелье не было строго линейным
+        if (_rooms.Count >= 4)
+        {
+            int extraA = Random.Range(1, _rooms.Count / 2);
+            int extraB = Random.Range(_rooms.Count / 2, _rooms.Count);
+            BuildCorridorPath(extraA, extraB);
+        }
+    }
+
+    private void BuildCorridorPath(int roomA, int roomB)
+    {
+        List<Vector2Int> path = FindPath(_rooms[roomA].Center, _rooms[roomB].Center, roomA, roomB);
+
+        foreach (var t in path)
+        {
+            if (!_roomAt.ContainsKey(t))
+                _floorPositions.Add(t);
+
+            // Делаем коридор шириной 3 тайла, чтобы игрок и мобы свободно расходились
+            Vector2Int[] nbs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+            foreach (var n in nbs)
+            {
+                Vector2Int w = t + n;
+                if (!_bounds.Contains(new Vector3Int(w.x, w.y, 0))) continue;
+                if (_roomAt.ContainsKey(w)) continue;
+                if (TouchesOtherRoom(w, roomA, roomB)) continue;
+                _floorPositions.Add(w);
+            }
+        }
+    }
+
+    private static float Heuristic(Vector2Int a, Vector2Int b) => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
 
     private float TileCost(Vector2Int t, int roomA, int roomB)
     {
         if (_roomAt.TryGetValue(t, out int r))
-            return (r == roomA || r == roomB) ? 1f : 400f; // чужая комната — почти табу
+            return (r == roomA || r == roomB) ? 1f : 500f;
 
         if (_roomRing.Contains(t))
-            return 100f; // кольцо вокруг комнат — дорого, путь идёт вдали от стен
+            return 80f;
 
         return 1f;
     }
@@ -184,10 +247,6 @@ public class MapGenerator : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    // Простой A* (карта мала, вызывается несколько раз за генерацию).
-    // Позже этот же подход используем для pathfinding врагов.
-    /// </summary>
     private List<Vector2Int> FindPath(Vector2Int from, Vector2Int to, int roomA, int roomB)
     {
         List<Vector2Int> open = new List<Vector2Int> { from };
@@ -241,13 +300,9 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        // Фолбэк (практически недостижим): прямая линия
         return new List<Vector2Int> { from, to };
     }
 
-    // ═══════════════════════════════════════
-    // Анти-диагональ
-    // ═══════════════════════════════════════
     private void FixDiagonalPinches()
     {
         Vector2Int[] diagonals =
@@ -278,9 +333,6 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    // ═══════════════════════════════════════
-    // Flood Fill
-    // ═══════════════════════════════════════
     private void RemoveUnreachableFloor()
     {
         if (!_floorPositions.Contains(Vector2Int.zero)) return;
@@ -298,22 +350,11 @@ public class MapGenerator : MonoBehaviour
                     queue.Enqueue(next);
             }
         }
-        int removed = _floorPositions.RemoveWhere(p => !reached.Contains(p));
-        if (removed > 0)
-            Debug.Log($"[MapGenerator] Удалено недостижимых тайлов: {removed}");
+        _floorPositions.RemoveWhere(p => !reached.Contains(p));
     }
 
-    // ═══════════════════════════════════════
-    // Сплошная порода: никаких синих дыр
-    // ═══════════════════════════════════════
-    // ═══════════════════════════════════════
-    // Стены: контур вокруг пола + заливка замкнутых карманов.
-    // Внешняя пустота остаётся фоном (без «серого моря»),
-    // синих дыр больше нет.
-    // ═══════════════════════════════════════
     private void GenerateWalls()
     {
-        // Шаг 1: «внешняя» пустота — не-пол, связанный с границей карты
         HashSet<Vector2Int> outside = new HashSet<Vector2Int>();
         Queue<Vector2Int> queue = new Queue<Vector2Int>();
 
@@ -347,7 +388,6 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        // Шаг 2: стена = (замкнутый карман) ИЛИ (контур, прилегающий к полу)
         for (int x = _bounds.xMin; x < _bounds.xMax; x++)
         {
             for (int y = _bounds.yMin; y < _bounds.yMax; y++)
@@ -356,14 +396,16 @@ public class MapGenerator : MonoBehaviour
                 if (_floorPositions.Contains(pos)) continue;
 
                 bool isOutside = outside.Contains(pos);
-
                 bool touchesFloor = false;
+
                 for (int dx = -1; dx <= 1 && !touchesFloor; dx++)
+                {
                     for (int dy = -1; dy <= 1; dy++)
                     {
                         if (_floorPositions.Contains(pos + new Vector2Int(dx, dy)))
                             touchesFloor = true;
                     }
+                }
 
                 if (!isOutside || touchesFloor)
                     _wallPositions.Add(pos);

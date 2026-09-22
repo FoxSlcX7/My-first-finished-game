@@ -70,7 +70,11 @@ public class DungeonDirector : MonoBehaviour
         {
             RoomRole role = RoomRole.Combat;
             if (i == startIndex) role = RoomRole.Safe;
-            else if (i == stairsIndex) role = RoomRole.Stairs;
+            else if (i == stairsIndex)
+            {
+                // На 5-м этаже самая дальняя комната становится ареной босса!
+                role = (Floor == 1) ? RoomRole.Boss : RoomRole.Stairs;
+            }
             else if (i == chestIndex) role = RoomRole.Chest;
 
             GameObject roomObj = new GameObject($"Room_{i}_{role}");

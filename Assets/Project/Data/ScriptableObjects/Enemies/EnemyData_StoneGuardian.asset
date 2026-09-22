@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5d5ac53cb4c6054b928f12da7d35215, type: 3}
+  m_Name: EnemyData_StoneGuardian
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
+  enemyName: "\u041A\u0430\u043C\u0435\u043D\u043D\u044B\u0439 \u0421\u0442\u0440\u0430\u0436"
+  type: 0
+  maxHealth: 650
+  moveSpeed: 2.2
+  acceleration: 10
+  contactDamage: 25
+  damageCooldown: 1.2
+  detectionRange: 25
+  attackRange: 2.2
+  projectilePrefab: {fileID: 0}
+  projectileSpeed: 8
+  shootInterval: 2.5
+  sprite: {fileID: 21300000, guid: 4574f971d70a83c41ade6083ada1035a, type: 3}
+  color: {r: 1, g: 1, b: 1, a: 1}
+  spriteScale: {x: 2, y: 2, z: 1}
+  knockbackResistance: 1
+  knockbackCooldown: 0.15
+  knockbackStagger: 0.25
+  contactKnockbackForce: 14

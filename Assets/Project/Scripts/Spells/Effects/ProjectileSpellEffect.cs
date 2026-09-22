@@ -20,6 +20,8 @@ public class ProjectileSpellEffect : SpellEffectBase
 
     private void SpawnProjectile(Vector2 origin, Vector2 direction, SpellSO data)
     {
+        if (PoolManager.Instance == null) return; // В мирных сценах (Хаб) пул отсутствует
+
         Projectile projectile = PoolManager.Instance.GetProjectile();
         if (projectile == null) return;
 

@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 597999142094657588}
   - component: {fileID: 2782373472721974930}
   - component: {fileID: 2490932771942793091}
-  - component: {fileID: -4151313745473855970}
   - component: {fileID: -1500952299498400483}
   - component: {fileID: -1414922584808055448}
   - component: {fileID: 4633397544845998194}
@@ -333,19 +332,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d223a07679df39e4ea20ac4266f5ae0b, type: 2}
   comboDatabase: {fileID: 11400000, guid: 3484000d1c627424eb308550e8bc31e6, type: 2}
   firePoint: {fileID: 2488860297175091185}
---- !u!114 &-4151313745473855970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5379975728647524566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfa281931c587fa42be39157db486a69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageFeedback
-  screenShake: {fileID: 0}
 --- !u!114 &-1500952299498400483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -421,6 +407,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 144c9d085e4e491409f0c0c3e9ef4ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  metaUpgrades:
+  - {fileID: 11400000, guid: c066fd9a2a6dfef428890c68a5329f16, type: 2}
+  - {fileID: 11400000, guid: 4b6147acedef0ec46af4c3f2e962ef3e, type: 2}
 --- !u!114 &5666600728106796774
 MonoBehaviour:
   m_ObjectHideFlags: 0

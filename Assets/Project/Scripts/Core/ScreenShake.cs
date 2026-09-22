@@ -12,17 +12,30 @@ public class ScreenShake : MonoBehaviour
     private void Awake()
     {
         _noise = GetComponent<CinemachineBasicMultiChannelPerlin>();
-
         if (_noise != null)
         {
             _noise.AmplitudeGain = 0f;
         }
     }
 
+    private void OnEnable()
+    {
+        GameEvents.OnPlayerDamaged?.AddListener(HandlePlayerDamaged);
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnPlayerDamaged?.RemoveListener(HandlePlayerDamaged);
+    }
+
+    private void HandlePlayerDamaged(int damage)
+    {
+        Shake();
+    }
+
     public void Shake(float amplitude, float duration)
     {
         if (_noise == null) return;
-
         _noise.AmplitudeGain = amplitude;
         _timer = duration;
     }

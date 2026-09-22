@@ -8,6 +8,9 @@ using UnityEngine;
 /// </summary>
 public class PlayerStats : MonoBehaviour
 {
+    [Header("Meta Progression")]
+    [SerializeField] private MetaUpgradeSO[] metaUpgrades;
+
     public static PlayerStats Instance { get; private set; }
 
     private readonly Dictionary<StatType, Stat> _stats = new();
@@ -36,6 +39,8 @@ public class PlayerStats : MonoBehaviour
 
         foreach (var kv in BaseValues)
             _stats[kv.Key] = new Stat(kv.Key, kv.Value);
+
+        ApplyMetaUpgrades();
     }
 
     private void Update()
@@ -71,6 +76,23 @@ public class PlayerStats : MonoBehaviour
     {
         if (upgrade != null && upgrade.effect != null)
             upgrade.effect.Apply(this, upgrade.upgradeName); // source = имя апгрейда
+    }
+
+    private void ApplyMetaUpgrades()
+    {
+        if (metaUpgrades == null || SaveSystem.Data == null) return;
+
+        foreach (var upgrade in metaUpgrades)
+        {
+            if (upgrade == null) continue;
+
+            int level = SaveSystem.Data.GetUpgradeLevel(upgrade.id);
+            if (level <= 0) continue;
+
+            float totalBonus = upgrade.valuePerLevel * level;
+            AddModifier(upgrade.statType, new StatModifier(totalBonus, upgrade.modifierType, $"Meta_{upgrade.id}"));
+            Debug.Log($"[PlayerStats] Применен мета-бонус: {upgrade.upgradeName} ур. {level} ({upgrade.statType} +{totalBonus})");
+        }
     }
 
     public static int ScaleDamage(int baseDamage)

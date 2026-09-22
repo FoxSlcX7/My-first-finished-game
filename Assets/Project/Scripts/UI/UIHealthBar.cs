@@ -7,6 +7,19 @@ public class UIHealthBar : MonoBehaviour
     [SerializeField] private Slider slider;
     [SerializeField] private TextMeshProUGUI healthText;
 
+    private void Awake()
+    {
+        if (slider != null)
+        {
+            slider.interactable = false; // Запрещаем нажатия мышью
+
+            // Полностью отключаем реакцию на стрелки и клавиши A/D
+            Navigation nav = slider.navigation;
+            nav.mode = Navigation.Mode.None;
+            slider.navigation = nav;
+        }
+    }
+
     private void OnEnable()
     {
         if (GameEvents.OnHealthChanged != null)
