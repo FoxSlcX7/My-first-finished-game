@@ -34,6 +34,7 @@ public class MapGenerator : MonoBehaviour
     private readonly HashSet<Vector2Int> _roomRing = new();
 
     public HashSet<Vector2Int> FloorPositions => _floorPositions;
+    public HashSet<Vector2Int> WallPositions => _wallPositions;
     public List<Room> Rooms => _rooms;
 
     private void Start()

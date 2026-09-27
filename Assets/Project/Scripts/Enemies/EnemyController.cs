@@ -56,6 +56,9 @@ public class EnemyController : MonoBehaviour
     {
         if (_health != null)
             _health.OnDeath -= HandleDeath;
+
+        if (_runtimeData != null)
+            Destroy(_runtimeData);
     }
 
     private void Update()

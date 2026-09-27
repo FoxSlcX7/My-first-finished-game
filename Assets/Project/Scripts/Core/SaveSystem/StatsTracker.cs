@@ -29,7 +29,18 @@ public static class StatsTracker
 
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Если предыдущий забег не был завершен смертью (например, нажали Restart в меню паузы)
+        // Игнорируем мирные сцены — в них забег не идет
+        if (scene.name == "Hub" || scene.name == "Boot" || scene.name == "MainMenu")
+        {
+            if (_isRunActive)
+            {
+                FinalizeRun(isDeath: false);
+            }
+            _isRunActive = false;
+            return;
+        }
+
+        // Если предыдущий забег не был завершен
         if (_isRunActive)
         {
             FinalizeRun(isDeath: false);

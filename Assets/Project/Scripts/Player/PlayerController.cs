@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 _moveInput;
     private Vector2 _aimInput;
     private Camera _mainCamera;
+    private float _currentSurfaceTraction = 1f;
 
 
     private void OnEnable()
@@ -85,12 +86,19 @@ public class PlayerController : MonoBehaviour
         _nextKnockbackTime = Time.time + knockbackCooldown;
     }
 
+    public void SetSurfaceTraction(float traction)
+    {
+        _currentSurfaceTraction = Mathf.Clamp(traction, 0.1f, 1f);
+    }
+
     private void FixedUpdate()
     {
         float speedMult = PlayerStats.Instance != null ? PlayerStats.Instance.MoveSpeedMultiplier : 1f;
         Vector2 targetVelocity = _moveInput * moveSpeed * speedMult;
         Vector2 velocityChange = targetVelocity - _rb.linearVelocity;
-        _rb.AddForce(velocityChange * acceleration, ForceMode2D.Force);
+
+        // Умножаем на сцепление: на льду ускорение ниже, что создает контролируемый занос
+        _rb.AddForce(velocityChange * (acceleration * _currentSurfaceTraction), ForceMode2D.Force);
     }
 
     private void Update()

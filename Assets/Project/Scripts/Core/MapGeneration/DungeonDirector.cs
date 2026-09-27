@@ -5,9 +5,14 @@ public class DungeonDirector : MonoBehaviour
 {
     public static DungeonDirector Instance { get; private set; }
 
+    [Header("Генерация и окружение")]
     [SerializeField] private MapGenerator mapGenerator;
+    [SerializeField] private MapVisualizer visualizer; // <-- Добавлено поле ссылки
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private DungeonConfigSO config;
+
+    [Header("Биомы")]
+    [SerializeField] private BiomeConfigSO[] biomes;
 
     private readonly List<GameObject> _roomObjects = new();
     public int Floor { get; private set; } = 1;
@@ -21,18 +26,48 @@ public class DungeonDirector : MonoBehaviour
     private void OnEnable() { mapGenerator.OnMapGenerated += BuildRooms; }
     private void OnDisable() { mapGenerator.OnMapGenerated -= BuildRooms; }
 
-    // ═══════════════════════════════════════
-    // Распределение ролей после каждой генерации
-    // ═══════════════════════════════════════
+    public BiomeConfigSO GetCurrentBiome()
+    {
+        if (biomes == null || biomes.Length == 0) return null;
+
+        foreach (var biome in biomes)
+        {
+            if (biome != null && Floor >= biome.startFloor && Floor <= biome.endFloor)
+                return biome;
+        }
+
+        return biomes[0];
+    }
+
     private void BuildRooms()
     {
         ClearRoomObjects();
 
+        BiomeConfigSO currentBiome = GetCurrentBiome();
+        if (currentBiome != null)
+        {
+            if (visualizer != null)
+            {
+                visualizer.SetBiomeTiles(currentBiome.floorTile, currentBiome.wallTile);
+                // Перерисовываем тайлы под текущий биом
+                if (mapGenerator != null)
+                {
+                    visualizer.PaintFloor(mapGenerator.FloorPositions);
+                    visualizer.PaintWalls(mapGenerator.WallPositions);
+                }
+            }
+
+            var player = GameManager.Instance?.PlayerTransform?.GetComponent<PlayerController>();
+            if (player != null)
+                player.SetSurfaceTraction(currentBiome.surfaceTraction);
+
+            Debug.Log($"[DungeonDirector] Применен биом: {currentBiome.biomeName} (Сцепление: {currentBiome.surfaceTraction})");
+        }
+
         List<Room> rooms = mapGenerator.Rooms;
         if (rooms == null || rooms.Count == 0) return;
 
-        // Стартовая комната — та, что СОДЕРЖИТ точку спавна (0,0).
-        // Первая комната генератора всегда в (0,0), так что это комната 0.
+        // Стартовая комната
         int startIndex = -1;
         for (int i = 0; i < rooms.Count; i++)
         {
@@ -48,7 +83,7 @@ public class DungeonDirector : MonoBehaviour
             }
         }
 
-        // Лестница — самая дальняя от стартовой комнаты
+        // Дальняя комната (лестница или босс)
         int stairsIndex = startIndex;
         float worst = float.MinValue;
         for (int i = 0; i < rooms.Count; i++)
@@ -66,36 +101,34 @@ public class DungeonDirector : MonoBehaviour
 
         List<RoomController> controllers = new List<RoomController>();
 
+        EnemyController[] biomeEnemies = (currentBiome != null && currentBiome.biomeEnemies != null && currentBiome.biomeEnemies.Length > 0)
+            ? currentBiome.biomeEnemies
+            : null;
+
         for (int i = 0; i < rooms.Count; i++)
         {
             RoomRole role = RoomRole.Combat;
             if (i == startIndex) role = RoomRole.Safe;
             else if (i == stairsIndex)
             {
-                // На 5-м этаже самая дальняя комната становится ареной босса!
-                role = (Floor == 1) ? RoomRole.Boss : RoomRole.Stairs;
+                role = (Floor == 5 || Floor == 10) ? RoomRole.Boss : RoomRole.Stairs;
             }
             else if (i == chestIndex) role = RoomRole.Chest;
 
             GameObject roomObj = new GameObject($"Room_{i}_{role}");
             roomObj.transform.SetParent(transform);
             RoomController rc = roomObj.AddComponent<RoomController>();
-            rc.Init(rooms[i], mapGenerator.FloorPositions, role, config);
+            rc.Init(rooms[i], mapGenerator.FloorPositions, role, config, biomeEnemies);
             _roomObjects.Add(roomObj);
             controllers.Add(rc);
         }
 
         PlaceAltars(rooms, controllers, startIndex, stairsIndex);
-
-        // Игрок — всегда в центр safe-комнаты, на каждом этаже
         PlacePlayerAt(rooms[startIndex].Center);
 
-        Debug.Log($"[DungeonDirector] Этаж {Floor}: комнат={rooms.Count}, start={startIndex}, stairs={stairsIndex}, chest={chestIndex}");
+        Debug.Log($"[DungeonDirector] Этаж {Floor}: комнат={rooms.Count}, биом={currentBiome?.biomeName}");
     }
 
-    // ═══════════════════════════════════════
-    // Переход на следующий этаж
-    // ═══════════════════════════════════════
     public void NextFloor()
     {
         Floor++;
@@ -103,10 +136,10 @@ public class DungeonDirector : MonoBehaviour
         foreach (var enemy in FindObjectsByType<EnemyController>(FindObjectsInactive.Exclude))
             Destroy(enemy.gameObject);
 
-        ClearRoomObjects(); // вместе с детьми: блокеры, сундук, лестница
+        ClearRoomObjects();
 
-        mapGenerator.GenerateMap();        // в конце OnMapGenerated → BuildRooms → PlacePlayerAt
-        enemySpawner.RefreshSpawnPoints(); // пере-кэш точек пола
+        mapGenerator.GenerateMap();
+        enemySpawner.RefreshSpawnPoints();
     }
 
     private void PlacePlayerAt(Vector2Int tile)
@@ -125,11 +158,6 @@ public class DungeonDirector : MonoBehaviour
         _roomObjects.Clear();
     }
 
-    // ═══════════════════════════════════════
-    // Алтари: только в боевых/сундучных комнатах (НЕ в стартовой и НЕ в лестничной),
-    // родитель — комната (умирают при смене этажа),
-    // открываются только после зачистки своей комнаты.
-    // ═══════════════════════════════════════
     private void PlaceAltars(List<Room> rooms, List<RoomController> controllers, int startIndex, int stairsIndex)
     {
         if (config.altarPrefab == null || config.altarSpellPool == null || config.altarSpellPool.Length == 0) return;
@@ -148,7 +176,6 @@ public class DungeonDirector : MonoBehaviour
             SpellSO spell = config.altarSpellPool[Random.Range(0, config.altarSpellPool.Length)];
             RoomController rc = controllers[idx];
 
-            // Тайл рядом с центром, чтобы не пересекаться с сундуком/лестницей в центре
             Vector2 worldPos = ToWorld(rooms[idx].Center + Vector2Int.right);
 
             GameObject altar = Instantiate(config.altarPrefab, worldPos, Quaternion.identity, rc.transform);

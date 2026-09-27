@@ -172,7 +172,11 @@ public class SpellCaster : MonoBehaviour
 
     private void SpawnComboProjectile(SpellComboSO combo)
     {
+        if (PoolManager.Instance == null) return;
+
         Projectile projectile = PoolManager.Instance.GetProjectile();
+        if (projectile == null) return;
+
         projectile.transform.position = firePoint.position;
         projectile.transform.rotation = firePoint.rotation;
         projectile.Init(firePoint.right);

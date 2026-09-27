@@ -30,4 +30,10 @@ public class MapVisualizer : MonoBehaviour
             wallTilemap.SetTile((Vector3Int)pos, wallTile);
         }
     }
+
+    public void SetBiomeTiles(TileBase newFloor, TileBase newWall)
+    {
+        if (newFloor != null) floorTile = newFloor;
+        if (newWall != null) wallTile = newWall;
+    }
 }

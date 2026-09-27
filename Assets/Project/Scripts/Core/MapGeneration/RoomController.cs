@@ -34,6 +34,7 @@ public class RoomController : MonoBehaviour
     private Coroutine _spawnRoutine;
     private bool _activated;
     private bool _cleared;
+    private EnemyController[] _wavePrefabs;
 
     // ═══════════════════════════════════════
     // Поводок: волновые враги не могут покинуть арену,
@@ -83,12 +84,13 @@ public class RoomController : MonoBehaviour
             Mathf.Clamp(pos.y, b.yMin, b.yMax));
     }
 
-    public void Init(Room room, HashSet<Vector2Int> globalFloor, RoomRole role, DungeonConfigSO config)
+    public void Init(Room room, HashSet<Vector2Int> globalFloor, RoomRole role, DungeonConfigSO config, EnemyController[] customWavePrefabs = null)
     {
         _room = room;
         _globalFloor = globalFloor;
         _role = role;
         _config = config;
+        _wavePrefabs = (customWavePrefabs != null && customWavePrefabs.Length > 0) ? customWavePrefabs : config.wavePrefabs;
 
         BoxCollider2D col = GetComponent<BoxCollider2D>();
         col.isTrigger = true;
@@ -178,7 +180,7 @@ public class RoomController : MonoBehaviour
     // ═══════════════════════════════════════
     private void SpawnWave()
     {
-        if (_config.wavePrefabs == null || _config.wavePrefabs.Length == 0)
+        if (_wavePrefabs == null || _wavePrefabs.Length == 0)
         {
             ClearRoom();
             return;
@@ -195,16 +197,18 @@ public class RoomController : MonoBehaviour
 
     private void SpawnBoss()
     {
-        if (_config.bossPrefab == null)
+        int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+        EnemyController prefabToSpawn = (floor >= 10) ? _config.boss2Prefab : _config.boss1Prefab;
+
+        if (prefabToSpawn == null)
         {
             ClearRoom();
             return;
         }
 
         Vector2 spawnPos = ToWorld(_room.Center);
-        EnemyController boss = Instantiate(_config.bossPrefab, spawnPos, Quaternion.identity, transform);
+        EnemyController boss = Instantiate(prefabToSpawn, spawnPos, Quaternion.identity, transform);
 
-        int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
         if (_config.balanceConfig != null)
         {
             boss.ApplyBalance(_config.balanceConfig, floor);
@@ -267,7 +271,7 @@ public class RoomController : MonoBehaviour
         }
         if (!found) return;
 
-        EnemyController prefab = _config.wavePrefabs[Random.Range(0, _config.wavePrefabs.Length)];
+        EnemyController prefab = _wavePrefabs[Random.Range(0, _wavePrefabs.Length)];
         EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
 
         int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;

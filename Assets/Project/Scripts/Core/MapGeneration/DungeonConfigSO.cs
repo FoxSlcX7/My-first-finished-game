@@ -39,5 +39,6 @@ public class DungeonConfigSO : ScriptableObject
     public BalanceConfig balanceConfig;
 
     [Header("Боссы")]
-    public EnemyController bossPrefab;
+    public EnemyController boss1Prefab;
+    public EnemyController boss2Prefab;
 }

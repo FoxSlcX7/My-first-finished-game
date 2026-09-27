@@ -30,6 +30,7 @@ public class PlayerStats : MonoBehaviour
         { StatType.Armor, 0f },
         { StatType.PickupRadius, 1f },
         { StatType.XPBoost, 1f },
+        { StatType.MaxHealth, 0f }
     };
 
     private void Awake()
@@ -41,6 +42,17 @@ public class PlayerStats : MonoBehaviour
             _stats[kv.Key] = new Stat(kv.Key, kv.Value);
 
         ApplyMetaUpgrades();
+
+        // Применяем мета-бонус к здоровью сразу при старте
+        Health health = GetComponent<Health>();
+        if (health != null)
+        {
+            int bonusHp = Mathf.RoundToInt(GetStat(StatType.MaxHealth));
+            if (bonusHp > 0)
+            {
+                health.Initialize(health.MaxHealth + bonusHp);
+            }
+        }
     }
 
     private void Update()

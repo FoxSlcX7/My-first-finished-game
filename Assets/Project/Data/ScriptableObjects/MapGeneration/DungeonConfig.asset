@@ -37,4 +37,5 @@ MonoBehaviour:
   altarCountMin: 1
   altarCountMax: 2
   balanceConfig: {fileID: 11400000, guid: 184cfa8dd003dfb41833c3f892a310a2, type: 2}
-  bossPrefab: {fileID: 733232982773758112, guid: a2f3b5dccf218db4c90d550a510949b5, type: 3}
+  boss1Prefab: {fileID: 733232982773758112, guid: a2f3b5dccf218db4c90d550a510949b5, type: 3}
+  boss2Prefab: {fileID: 246775965948770801, guid: eb5f9c7f2f5053e4eb0bec23fa6eeafa, type: 3}
