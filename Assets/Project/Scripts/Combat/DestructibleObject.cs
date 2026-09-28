@@ -61,14 +61,15 @@ public class DestructibleObject : MonoBehaviour
     {
         _isDestroyed = true;
 
-        // Спавним частицы разлома / щепки
+        ScreenShake.Instance?.Shake(0.8f, 0.12f);
+        AudioManager.Instance?.PlayCrateBreakSFX();
+
         if (destroyVFXPrefab != null)
         {
             Instantiate(destroyVFXPrefab, transform.position, Quaternion.identity);
         }
 
         SpawnLoot();
-
         Destroy(gameObject);
     }
 

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class ScreenShake : MonoBehaviour
 {
+    public static ScreenShake Instance { get; private set; }
+
     [SerializeField] private float defaultAmplitude = 1.5f;
     [SerializeField] private float defaultDuration = 0.2f;
 
@@ -11,6 +13,13 @@ public class ScreenShake : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         _noise = GetComponent<CinemachineBasicMultiChannelPerlin>();
         if (_noise != null)
         {
@@ -21,16 +30,24 @@ public class ScreenShake : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.OnPlayerDamaged?.AddListener(HandlePlayerDamaged);
+        GameEvents.OnComboCast?.AddListener(HandleComboCast);
     }
 
     private void OnDisable()
     {
         GameEvents.OnPlayerDamaged?.RemoveListener(HandlePlayerDamaged);
+        GameEvents.OnComboCast?.RemoveListener(HandleComboCast);
     }
 
     private void HandlePlayerDamaged(int damage)
     {
-        Shake();
+        Shake(defaultAmplitude, defaultDuration);
+    }
+
+    private void HandleComboCast(SpellComboSO combo)
+    {
+        // Мощный сочный импульс при разряде комбо
+        Shake(2.5f, 0.35f);
     }
 
     public void Shake(float amplitude, float duration)

@@ -10,6 +10,8 @@ public static class StatsTracker
 
     public static int LastRunKills => _runKills;
     public static int LastRunEarnedStones { get; private set; }
+    public static int LastRunFloor { get; private set; } = 1;
+    public static float LastRunDuration { get; private set; }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Init()
@@ -99,6 +101,7 @@ public static class StatsTracker
         _isRunActive = false;
 
         float runDuration = Time.realtimeSinceStartup - _runStartTime;
+        LastRunDuration = runDuration; // <-- сохраняем для UI
 
         if (isDeath)
         {
@@ -107,6 +110,7 @@ public static class StatsTracker
         SaveSystem.Data.totalPlayTime += runDuration;
 
         int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+        LastRunFloor = floor; // <-- сохраняем для UI
         int timeMinutes = Mathf.FloorToInt(runDuration / 60f);
 
         // Защита от спам-перезапусков: не начисляем руны, если игрок сразу вышел без боя

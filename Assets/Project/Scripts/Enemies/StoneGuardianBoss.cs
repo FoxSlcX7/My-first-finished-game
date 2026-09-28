@@ -145,6 +145,9 @@ public class StoneGuardianBoss : MonoBehaviour
         {
             EnemyAOEZone zone = Instantiate(stompPrefab, transform.position, Quaternion.identity);
             zone.Init(stompDamage, stompRadius);
+
+            // Тряска арены от удара гиганта
+            ScreenShake.Instance?.Shake(2.0f, 0.25f);
         }
 
         // Ждем завершения телеграфа удара
