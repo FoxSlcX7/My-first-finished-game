@@ -13,7 +13,10 @@ public class DamageFlash : MonoBehaviour
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _originalColor = _spriteRenderer.color;
+        if (_spriteRenderer != null)
+        {
+            _originalColor = _spriteRenderer.color;
+        }
         _health = GetComponent<Health>();
     }
 
@@ -35,8 +38,19 @@ public class DamageFlash : MonoBehaviour
 
     private void HandleDamaged(int damage)
     {
+        CallDamageFlash();
+    }
+
+    /// <summary>
+    /// Публичный метод вызова вспышки (для разрушаемых объектов и внешних скриптов)
+    /// </summary>
+    public void CallDamageFlash()
+    {
         _flashTimer = flashDuration;
-        _spriteRenderer.color = flashColor;
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = flashColor;
+        }
     }
 
     private void Update()
@@ -44,7 +58,7 @@ public class DamageFlash : MonoBehaviour
         if (_flashTimer > 0f)
         {
             _flashTimer -= Time.deltaTime;
-            if (_flashTimer <= 0f)
+            if (_flashTimer <= 0f && _spriteRenderer != null)
             {
                 _spriteRenderer.color = _originalColor;
             }

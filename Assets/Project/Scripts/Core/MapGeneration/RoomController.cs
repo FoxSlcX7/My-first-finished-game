@@ -23,6 +23,7 @@ public class RoomController : MonoBehaviour
     private HashSet<Vector2Int> _globalFloor;
     private RoomRole _role;
     private DungeonConfigSO _config;
+    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
 
     // Тайлы КОРИДОРА, где встают блокеры (внешняя сторона проёма)
     private readonly HashSet<Vector2Int> _doorTiles = new();
@@ -101,6 +102,11 @@ public class RoomController : MonoBehaviour
 
         if (_role == RoomRole.Stairs && _config.stairsPrefab != null)
             Instantiate(_config.stairsPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
+
+        // Спавним опасности биома (лаву / шипы)
+        SpawnBiomeHazards();
+
+        SpawnDestructibles();
     }
 
     // ═══════════════════════════════════════
@@ -384,14 +390,111 @@ public class RoomController : MonoBehaviour
             }
         }
 
-        if (_role == RoomRole.Boss && _config.stairsPrefab != null)
+        if (_role == RoomRole.Boss)
         {
-            Instantiate(_config.stairsPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
-            Debug.Log("[RoomController] Босс повержен! Заспавнена лестница.");
+            int currentFloor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
+
+            if (currentFloor >= 10)
+            {
+                Debug.Log("[RoomController] Архимаг повержен! Забег успешно пройден!");
+                GameManager.Instance?.Victory();
+            }
+            else if (_config.stairsPrefab != null)
+            {
+                Instantiate(_config.stairsPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
+                Debug.Log("[RoomController] Босс повержен! Заспавнена лестница на следующий этаж.");
+            }
         }
 
         OnRoomCleared?.Invoke();
     }
 
-    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
+    private void SpawnBiomeHazards()
+    {
+        // Не спавним опасности в стартовой комнате
+        if (_role == RoomRole.Safe) return;
+
+        BiomeConfigSO currentBiome = DungeonDirector.Instance?.GetCurrentBiome();
+        if (currentBiome == null || currentBiome.hazardPrefab == null) return;
+        if (currentBiome.maxHazardsPerRoom <= 0) return;
+
+        int count = Random.Range(currentBiome.minHazardsPerRoom, currentBiome.maxHazardsPerRoom + 1);
+        if (count <= 0) return;
+
+        List<Vector2Int> candidates = new List<Vector2Int>();
+        Vector2Int center = _room.Center;
+
+        foreach (var tile in _room.FloorPositions)
+        {
+            // Не ставим лужу прямо в центр (где сундук, алтарь или лестница)
+            if (tile == center || tile == center + Vector2Int.right) continue;
+
+            // Не спавним лужу в дверных проходах, чтобы не блокировать вход
+            bool nearDoor = false;
+            foreach (var door in _doorTiles)
+            {
+                if (Vector2Int.Distance(tile, door) < 2f)
+                {
+                    nearDoor = true;
+                    break;
+                }
+            }
+
+            if (!nearDoor) candidates.Add(tile);
+        }
+
+        for (int i = 0; i < count && candidates.Count > 0; i++)
+        {
+            int idx = Random.Range(0, candidates.Count);
+            Vector2Int chosenTile = candidates[idx];
+            candidates.RemoveAt(idx);
+
+            Vector2 spawnPos = ToWorld(chosenTile);
+            Instantiate(currentBiome.hazardPrefab, spawnPos, Quaternion.identity, transform);
+        }
+    }
+
+    private void SpawnDestructibles()
+    {
+        if (_role == RoomRole.Safe) return;
+
+        BiomeConfigSO currentBiome = DungeonDirector.Instance?.GetCurrentBiome();
+        if (currentBiome == null || currentBiome.destructiblePrefab == null) return;
+        if (currentBiome.maxDestructiblesPerRoom <= 0) return;
+
+        int count = Random.Range(currentBiome.minDestructiblesPerRoom, currentBiome.maxDestructiblesPerRoom + 1);
+        if (count <= 0) return;
+
+        List<Vector2Int> candidates = new List<Vector2Int>();
+        Vector2Int center = _room.Center;
+
+        foreach (var tile in _room.FloorPositions)
+        {
+            // Не занимаем центр комнаты (алтари, сундуки)
+            if (Vector2Int.Distance(tile, center) < 2f) continue;
+
+            // Не перекрываем дверные проёмы
+            bool nearDoor = false;
+            foreach (var door in _doorTiles)
+            {
+                if (Vector2Int.Distance(tile, door) < 2.5f)
+                {
+                    nearDoor = true;
+                    break;
+                }
+            }
+
+            if (!nearDoor) candidates.Add(tile);
+        }
+
+        for (int i = 0; i < count && candidates.Count > 0; i++)
+        {
+            int idx = Random.Range(0, candidates.Count);
+            Vector2Int chosenTile = candidates[idx];
+            candidates.RemoveAt(idx);
+
+            Vector2 spawnPos = ToWorld(chosenTile);
+            Instantiate(currentBiome.destructiblePrefab, spawnPos, Quaternion.identity, transform);
+        }
+    }
 }

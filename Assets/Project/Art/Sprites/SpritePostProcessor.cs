@@ -15,7 +15,7 @@ public class SpritePostProcessor : AssetPostprocessor
             // Устанавливаем настройки для Pixel Art
             textureImporter.textureType = TextureImporterType.Sprite;
             textureImporter.spriteImportMode = SpriteImportMode.Multiple; // Сразу ставит Multiple
-            textureImporter.spritePixelsPerUnit = 32; // Укажите ваш стандартный PPU (16, 32, 64)
+            textureImporter.spritePixelsPerUnit = 16; // Укажите ваш стандартный PPU (16, 32, 64)
 
             textureImporter.filterMode = FilterMode.Point;
             textureImporter.textureCompression = TextureImporterCompression.Uncompressed;

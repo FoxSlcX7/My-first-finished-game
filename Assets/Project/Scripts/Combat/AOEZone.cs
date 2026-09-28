@@ -34,6 +34,10 @@ public class AOEZone : MonoBehaviour
         foreach (Collider2D hit in hits)
         {
             if (hit.CompareTag("Player")) continue;
+            if (hit.TryGetComponent<DestructibleObject>(out var destructible))
+            {
+                destructible.TakeDamage(_damage);
+            }
 
             Health health = hit.GetComponent<Health>();
             if (health != null)

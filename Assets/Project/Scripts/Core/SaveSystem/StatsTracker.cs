@@ -17,11 +17,14 @@ public static class StatsTracker
         if (_initialized) return;
         _initialized = true;
 
+        // Гарантируем, что ScriptableObject-события загружены из Resources до подписки
+        GameEvents.Initialize();
+
         SceneManager.sceneLoaded += OnSceneLoaded;
-        GameEvents.OnEnemyDied.AddListener(OnEnemyKilled);
-        GameEvents.OnPlayerDied.AddListener(OnPlayerDied);
-        GameEvents.OnSlotAChanged.AddListener(OnSpellEquipped);
-        GameEvents.OnSlotBChanged.AddListener(OnSpellEquipped);
+        GameEvents.OnEnemyDied?.AddListener(OnEnemyKilled);
+        GameEvents.OnPlayerDied?.AddListener(OnPlayerDied);
+        GameEvents.OnSlotAChanged?.AddListener(OnSpellEquipped);
+        GameEvents.OnSlotBChanged?.AddListener(OnSpellEquipped);
 
         // Обработка закрытия приложения (Alt+F4, выход из игры, стоп в редакторе)
         Application.quitting += OnApplicationQuitting;

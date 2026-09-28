@@ -8,16 +8,15 @@ public class UIXPBar : MonoBehaviour
     [SerializeField] private TextMeshProUGUI xpText;
     [SerializeField] private TextMeshProUGUI levelText;
 
-    private PlayerXP _xp;
-
     private void OnEnable()
     {
-        if (_xp == null)
-            _xp = PlayerXP.Instance != null ? PlayerXP.Instance : FindAnyObjectByType<PlayerXP>();
-
         GameEvents.OnXPChanged?.AddListener(HandleXP);
 
-        if (_xp != null) HandleXP(_xp.CurrentXP, _xp.RequiredXP);
+        // Если PlayerXP уже инициализирован, сразу выводим текущее состояние
+        if (PlayerXP.Instance != null)
+        {
+            HandleXP(PlayerXP.Instance.CurrentXP, PlayerXP.Instance.RequiredXP);
+        }
     }
 
     private void OnDisable()

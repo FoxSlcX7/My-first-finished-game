@@ -15,12 +15,20 @@ MonoBehaviour:
   biomeName: "\u041A\u0440\u0438\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435
     \u041F\u0435\u0449\u0435\u0440\u044B"
   startFloor: 1
-  endFloor: 4
-  floorTile: {fileID: 11400000, guid: 752f25cb4e0b8ff49b4cf9e37a165a76, type: 2}
-  wallTile: {fileID: 11400000, guid: 8b908fe3455bde74881c73f49a49eee3, type: 2}
+  endFloor: 5
+  floorTile: {fileID: 11400000, guid: 302541f0902e45140ad7072d959f51be, type: 2}
+  wallTile: {fileID: 11400000, guid: a562a83a6e1054f48ba3e7974c3825ce, type: 2}
   surfaceTraction: 0.35
+  hazardPrefab: {fileID: 0}
+  minHazardsPerRoom: 0
+  maxHazardsPerRoom: 0
   biomeEnemies:
   - {fileID: 4814479300201373233, guid: 7405401db592fc84e9716b427de2b18f, type: 3}
   - {fileID: 3894617289791534148, guid: 77478c81f2714cc4482ba77de19b0174, type: 3}
   - {fileID: 8843426434211922223, guid: 6237a4a804ce4744da4b6554feb380de, type: 3}
-  ambientLightColor: {r: 1, g: 1, b: 1, a: 1}
+  ambientLightColor: {r: 0.79098374, g: 0.7877358, b: 1, a: 1}
+  destructiblePrefab: {fileID: 1665370327687338756, guid: 5ec5c9aa7772c1943be2acbd57050691, type: 3}
+  minDestructiblesPerRoom: 1
+  maxDestructiblesPerRoom: 4
+  corridorHazardChance: 0.03
+  corridorDestructibleChance: 0.02

@@ -81,7 +81,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1888257569
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 45b96aab96433304a8dd459f35996197, type: 3}
@@ -155,6 +155,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpellAltar
   spriteRenderer: {fileID: 6906002917956075593}
   hintObject: {fileID: 4515032148102325191}
+  lockedColor: {r: 0.55, g: 0.55, b: 0.6, a: 0.85}
+  unlockedColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2254726445855274622
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,7 +217,7 @@ Canvas:
   m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: -1888257569
+  m_SortingLayerID: 1011656245
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &4098888752000036190

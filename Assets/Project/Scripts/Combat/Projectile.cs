@@ -21,6 +21,8 @@ public class Projectile : MonoBehaviour
     private const float RicochetRadius = 6f;
     private const float ChainRadius = 4f;
 
+    public int Damage => _damage;
+
     public void Init(Vector2 direction)
     {
         _direction = direction.normalized;
@@ -65,12 +67,17 @@ public class Projectile : MonoBehaviour
     {
         Vector2 origin = transform.position;
         float step = speed * Time.deltaTime;
-
         if (wallLayer.value != 0 && _direction.sqrMagnitude > 0.01f)
         {
             RaycastHit2D hit = Physics2D.CircleCast(origin, wallCheckRadius, _direction, step, wallLayer);
             if (hit.collider != null)
             {
+                // Если перед пулей разрушаемый объект — наносим урон перед возвратом в пул
+                if (hit.collider.TryGetComponent<DestructibleObject>(out var destructible))
+                {
+                    destructible.TakeDamage(_damage);
+                }
+
                 ReturnToPool();
                 return;
             }
@@ -81,6 +88,14 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // Проверка урона по разрушаемым объектам окружения
+        if (other.TryGetComponent<DestructibleObject>(out var destructible))
+        {
+            destructible.TakeDamage(_damage);
+            ReturnToPool();
+            return;
+        }
+
         if (other.CompareTag("Enemy"))
         {
             other.GetComponent<Health>()?.TakeDamage(_damage);

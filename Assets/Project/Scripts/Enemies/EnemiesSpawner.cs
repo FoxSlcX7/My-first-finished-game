@@ -31,19 +31,20 @@ public class EnemySpawner : MonoBehaviour
 
     public void RefreshSpawnPoints() => CacheSpawnPoints();
 
-    private void Start()
-    {
-        Invoke(nameof(CacheSpawnPoints), 0.15f);
-    }
-
     private void OnEnable()
     {
+        if (mapGenerator != null)
+            mapGenerator.OnMapGenerated += CacheSpawnPoints;
+
         if (GameEvents.OnEnemyDied != null)
             GameEvents.OnEnemyDied.AddListener(HandleEnemyDeath);
     }
 
     private void OnDisable()
     {
+        if (mapGenerator != null)
+            mapGenerator.OnMapGenerated -= CacheSpawnPoints;
+
         if (GameEvents.OnEnemyDied != null)
             GameEvents.OnEnemyDied.RemoveListener(HandleEnemyDeath);
     }

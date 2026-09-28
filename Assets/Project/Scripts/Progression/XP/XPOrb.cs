@@ -26,8 +26,11 @@ public class XPOrb : MonoBehaviour
 
         if (_player == null) return;
 
-        float dist = Vector2.Distance(transform.position, _player.position);
-        if (dist < magnetRadius)
+        Vector2 toPlayer = (Vector2)_player.position - (Vector2)transform.position;
+        float sqrDist = toPlayer.sqrMagnitude;
+        float sqrMagnetRadius = magnetRadius * magnetRadius;
+
+        if (sqrDist < sqrMagnetRadius)
         {
             transform.position = Vector2.MoveTowards(transform.position, _player.position, moveSpeed * Time.deltaTime);
         }

@@ -20,6 +20,6 @@ MonoBehaviour:
   maxLevel: 5
   baseCost: 20
   costMultiplier: 1.5
-  statType: 10
+  statType: 13
   modifierType: 0
-  valuePerLevel: 0.1
+  valuePerLevel: 20

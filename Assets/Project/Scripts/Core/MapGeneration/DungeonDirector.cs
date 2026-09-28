@@ -4,10 +4,11 @@ using UnityEngine;
 public class DungeonDirector : MonoBehaviour
 {
     public static DungeonDirector Instance { get; private set; }
+    public int Floor { get; private set; } = 1;
 
     [Header("Генерация и окружение")]
     [SerializeField] private MapGenerator mapGenerator;
-    [SerializeField] private MapVisualizer visualizer; // <-- Добавлено поле ссылки
+    [SerializeField] private MapVisualizer visualizer;
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private DungeonConfigSO config;
 
@@ -15,7 +16,7 @@ public class DungeonDirector : MonoBehaviour
     [SerializeField] private BiomeConfigSO[] biomes;
 
     private readonly List<GameObject> _roomObjects = new();
-    public int Floor { get; private set; } = 1;
+    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
 
     private void Awake()
     {
@@ -49,11 +50,10 @@ public class DungeonDirector : MonoBehaviour
             if (visualizer != null)
             {
                 visualizer.SetBiomeTiles(currentBiome.floorTile, currentBiome.wallTile);
-                // Перерисовываем тайлы под текущий биом
                 if (mapGenerator != null)
                 {
                     visualizer.PaintFloor(mapGenerator.FloorPositions);
-                    visualizer.PaintWalls(mapGenerator.WallPositions);
+                    visualizer.PaintWalls(mapGenerator.WallPositions); // внутри само построит тени!
                 }
             }
 
@@ -125,6 +125,7 @@ public class DungeonDirector : MonoBehaviour
 
         PlaceAltars(rooms, controllers, startIndex, stairsIndex);
         PlacePlayerAt(rooms[startIndex].Center);
+        SpawnCorridorDecorations(mapGenerator.FloorPositions, rooms);
 
         Debug.Log($"[DungeonDirector] Этаж {Floor}: комнат={rooms.Count}, биом={currentBiome?.biomeName}");
     }
@@ -189,5 +190,45 @@ public class DungeonDirector : MonoBehaviour
         }
     }
 
-    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
+    /// <summary>
+    /// Спавнит опасности и разрушаемые объекты в коридорах этажа
+    /// </summary>
+    private void SpawnCorridorDecorations(HashSet<Vector2Int> allFloorTiles, List<Room> rooms)
+    {
+        BiomeConfigSO biome = GetCurrentBiome();
+        if (biome == null) return;
+
+        // 1. Выделяем чистые клетки коридоров (общий пол МИНУС полы комнат)
+        HashSet<Vector2Int> corridorTiles = new HashSet<Vector2Int>(allFloorTiles);
+        foreach (var room in rooms)
+        {
+            foreach (var tile in room.FloorPositions)
+            {
+                corridorTiles.Remove(tile);
+            }
+        }
+
+        // 2. Создаем контейнер и сразу добавляем в список на очистку
+        GameObject corridorPropsObj = new GameObject("[Corridor_Props]");
+        corridorPropsObj.transform.SetParent(transform);
+        _roomObjects.Add(corridorPropsObj);
+
+        foreach (var tile in corridorTiles)
+        {
+            Vector2 worldPos = new Vector2(tile.x + 0.5f, tile.y + 0.5f);
+
+            // Спавн лавы / опасности в коридоре
+            if (biome.hazardPrefab != null && Random.value < biome.corridorHazardChance)
+            {
+                Instantiate(biome.hazardPrefab, worldPos, Quaternion.identity, corridorPropsObj.transform);
+                continue; // Не спавним ящик на ту же клетку
+            }
+
+            // Спавн ящика / баррикады в коридоре
+            if (biome.destructiblePrefab != null && Random.value < biome.corridorDestructibleChance)
+            {
+                Instantiate(biome.destructiblePrefab, worldPos, Quaternion.identity, corridorPropsObj.transform);
+            }
+        }
+    }
 }

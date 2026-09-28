@@ -6,10 +6,12 @@ public class SpellCaster : MonoBehaviour
     [SerializeField] private ComboDatabase comboDatabase;
     [SerializeField] private Transform firePoint;
 
+    public static SpellCaster Instance { get; private set; }
+
     public event System.Action OnSpellCast;
     public event System.Action<bool> OnComboReadyChanged;
-    /// <summary>Заряд половин шкалы (A, B), 0..100. Для UI.</summary>
-    public event System.Action<float, float> OnComboChargeChanged;
+    /// <summary>Глобальное событие заряда комбо (A, B), 0..100. Не требует поиска игрока.</summary>
+    public static event System.Action<float, float> OnComboChargeChanged;
 
     private SpellSO _slotA;
     private SpellSO _slotB;
@@ -22,10 +24,32 @@ public class SpellCaster : MonoBehaviour
     public float ChargeA => _chargeA;
     public float ChargeB => _chargeB;
 
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     private void Start()
     {
-        _slotA = availableSpells[0];
-        _slotB = availableSpells[1];
+        if (availableSpells != null && availableSpells.Length >= 2)
+        {
+            _slotA = availableSpells[0];
+            _slotB = availableSpells[1];
+        }
+        else
+        {
+            Debug.LogError("[SpellCaster] Массив availableSpells пуст или содержит меньше 2 заклинаний!");
+        }
 
         GameEvents.OnSlotAChanged?.Raise(_slotA);
         GameEvents.OnSlotBChanged?.Raise(_slotB);

@@ -46,7 +46,7 @@ public class UIAltarChoice : MonoBehaviour
         if (offered == null) return;
 
         _offered = offered;
-        _caster = FindAnyObjectByType<SpellCaster>();
+        _caster = SpellCaster.Instance;
         if (_caster == null) return;
 
         if (spellIcon != null) { spellIcon.sprite = offered.icon; spellIcon.enabled = offered.icon != null; }
