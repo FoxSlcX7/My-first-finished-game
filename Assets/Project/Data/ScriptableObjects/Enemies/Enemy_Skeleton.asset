@@ -20,7 +20,8 @@ MonoBehaviour:
   contactDamage: 10
   damageCooldown: 1
   detectionRange: 10
-  attackRange: 1.5
+  attackRange: 1.2
+  hitRadius: 0.8
   projectilePrefab: {fileID: 0}
   projectileSpeed: 8
   shootInterval: 2.5

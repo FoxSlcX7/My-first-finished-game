@@ -82,7 +82,6 @@ public class Stat
     /// </summary>
     private void Recalculate()
     {
-        float total = BaseValue;
         float addSum = 0f;
         float multiplySum = 1f;
         float finalMultiplySum = 1f;
@@ -103,7 +102,10 @@ public class Stat
             }
         }
 
-        total = (BaseValue + addSum) * multiplySum * finalMultiplySum;
+        multiplySum = Mathf.Max(0f, multiplySum);
+        finalMultiplySum = Mathf.Max(0f, finalMultiplySum);
+
+        float total = (BaseValue + addSum) * multiplySum * finalMultiplySum;
         ComputedValue = total;
     }
 

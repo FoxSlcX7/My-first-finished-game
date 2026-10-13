@@ -24,7 +24,7 @@ public class DeadState : IEnemyState
         MonoBehaviour[] scripts = _enemy.GetComponents<MonoBehaviour>();
         foreach (var script in scripts)
         {
-            if (script is Animator || script is Health) continue;
+            if (script is Animator || script is Health || script is EnemyController) continue;
             script.enabled = false;
         }
 

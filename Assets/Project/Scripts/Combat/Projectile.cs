@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -119,7 +120,8 @@ public class Projectile : MonoBehaviour
             // Рикошет: не возвращаемся в пул, летим в следующую цель
             if (_bounces > 0)
             {
-                Transform next = FindNearestEnemy(other.gameObject, RicochetRadius);
+                HashSet<GameObject> exclude = new() { other.gameObject };
+                Transform next = FindNearestEnemy(exclude, RicochetRadius);
                 if (next != null)
                 {
                     _direction = ((Vector2)next.position - (Vector2)transform.position).normalized;
@@ -133,30 +135,41 @@ public class Projectile : MonoBehaviour
         }
     }
 
-    private Transform FindNearestEnemy(GameObject exclude, float radius)
+    private Transform FindNearestEnemy(HashSet<GameObject> excluded, float radius)
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
         Transform best = null;
         float bestDist = float.MaxValue;
+
         foreach (var h in hits)
         {
-            if (!h.CompareTag("Enemy") || h.gameObject == exclude) continue;
+            if (!h.CompareTag("Enemy") || (excluded != null && excluded.Contains(h.gameObject))) continue;
+
+            Health hp = h.GetComponent<Health>();
+            if (hp == null || hp.IsDead) continue;
+
             float d = Vector2.Distance(transform.position, h.transform.position);
-            if (d < bestDist) { bestDist = d; best = h.transform; }
+            if (d < bestDist)
+            {
+                bestDist = d;
+                best = h.transform;
+            }
         }
         return best;
     }
 
     private void StrikeChain(GameObject firstTarget)
     {
-        GameObject current = firstTarget;
+        HashSet<GameObject> visited = new() { firstTarget };
         int chainDamage = Mathf.Max(1, Mathf.RoundToInt(_damage * _chainDamagePercent));
+
         for (int i = 0; i < _chainTargets; i++)
         {
-            Transform next = FindNearestEnemy(current, ChainRadius);
+            Transform next = FindNearestEnemy(visited, ChainRadius);
             if (next == null) break;
+
+            visited.Add(next.gameObject);
             next.GetComponent<Health>()?.TakeDamage(chainDamage);
-            current = next.gameObject;
         }
     }
 

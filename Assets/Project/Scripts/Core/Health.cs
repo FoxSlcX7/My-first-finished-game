@@ -1,21 +1,31 @@
+using System.Collections;
 using UnityEngine;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] private int maxHealth = 10;
+    [Tooltip("Длительность неуязвимости игрока после получения урона (i-frames в секундах).")]
+    [SerializeField] private float invulnerabilityDuration = 0.5f;
 
     public event System.Action<int> OnDamaged;
     public event System.Action OnDeath;
 
     public int MaxHealth => maxHealth;
     public int CurrentHealth { get; private set; }
+    public bool IsDead => _isDead;
+    public bool IsInvulnerable => _isInvulnerable;
 
     private bool _isPlayer;
+    private bool _isDead;
+    private bool _isInvulnerable;
+    private SpriteRenderer _spriteRenderer;
+    private Coroutine _invulnerabilityRoutine;
 
     private void Awake()
     {
         CurrentHealth = maxHealth;
         _isPlayer = CompareTag("Player");
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     private void Start()
@@ -28,26 +38,94 @@ public class Health : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        CurrentHealth -= damage;
+        if (_isDead || damage <= 0) return;
 
-        OnDamaged?.Invoke(damage);
-        GameEvents.OnDamaged?.Raise(damage);
+        // Если игрок во фреймах неуязвимости — урон не проходит
+        if (_isPlayer && _isInvulnerable) return;
+
+        int finalDamage = damage;
+        // Учет брони игрока
+        if (_isPlayer && PlayerStats.Instance != null)
+        {
+            finalDamage = Mathf.Max(1, Mathf.RoundToInt(damage * (1f - PlayerStats.Instance.Armor)));
+        }
+
+        CurrentHealth -= finalDamage;
+
+        OnDamaged?.Invoke(finalDamage);
+        GameEvents.OnDamaged?.Raise(finalDamage);
 
         if (_isPlayer)
         {
-            GameEvents.OnPlayerDamaged?.Raise(damage);
+            GameEvents.OnPlayerDamaged?.Raise(finalDamage);
             GameEvents.OnHealthChanged?.Raise(CurrentHealth, MaxHealth);
         }
 
         if (CurrentHealth <= 0)
         {
+            CurrentHealth = 0;
             Die();
+        }
+        else if (_isPlayer && invulnerabilityDuration > 0f)
+        {
+            // Запуск i-frames после получения урона
+            TriggerInvulnerability();
+        }
+    }
+
+    /// <summary>
+    /// Запуск неуязвимости на заданное время (или по умолчанию).
+    /// Можно вызывать из внешних скриптов (например, при рывке или парировании).
+    /// </summary>
+    public void TriggerInvulnerability(float duration = -1f)
+    {
+        if (_isDead) return;
+
+        float actualDuration = duration > 0f ? duration : invulnerabilityDuration;
+        if (actualDuration <= 0f) return;
+
+        if (_invulnerabilityRoutine != null)
+            StopCoroutine(_invulnerabilityRoutine);
+
+        _invulnerabilityRoutine = StartCoroutine(InvulnerabilityRoutine(actualDuration));
+    }
+
+    private IEnumerator InvulnerabilityRoutine(float duration)
+    {
+        _isInvulnerable = true;
+        float elapsed = 0f;
+        float flashInterval = 0.08f;
+        bool visible = true;
+
+        while (elapsed < duration)
+        {
+            if (_isDead) yield break;
+            yield return new WaitForSeconds(flashInterval);
+            elapsed += flashInterval;
+
+            visible = !visible;
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.enabled = visible;
+            }
+        }
+
+        ResetInvulnerabilityVisuals();
+        _isInvulnerable = false;
+        _invulnerabilityRoutine = null;
+    }
+
+    private void ResetInvulnerabilityVisuals()
+    {
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.enabled = true;
         }
     }
 
     public void Heal(int amount)
     {
-        if (amount <= 0) return;
+        if (_isDead || amount <= 0) return;
         CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
         if (_isPlayer)
             GameEvents.OnHealthChanged?.Raise(CurrentHealth, MaxHealth);
@@ -57,10 +135,29 @@ public class Health : MonoBehaviour
     {
         maxHealth = maxHp;
         CurrentHealth = maxHp;
+        _isDead = false;
+        _isInvulnerable = false;
+
+        if (_invulnerabilityRoutine != null)
+        {
+            StopCoroutine(_invulnerabilityRoutine);
+            _invulnerabilityRoutine = null;
+        }
+        ResetInvulnerabilityVisuals();
     }
 
     private void Die()
     {
+        if (_isDead) return;
+        _isDead = true;
+
+        if (_invulnerabilityRoutine != null)
+        {
+            StopCoroutine(_invulnerabilityRoutine);
+            _invulnerabilityRoutine = null;
+        }
+        ResetInvulnerabilityVisuals();
+
         OnDeath?.Invoke();
 
         if (_isPlayer)

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class ChaseState : IEnemyState
 {
     private EnemyController _enemy;
@@ -9,9 +11,18 @@ public class ChaseState : IEnemyState
 
     public void Execute()
     {
-        if (_enemy == null) return;
+        if (_enemy == null || _enemy.Data == null) return;
 
-        if (_enemy.DistanceToPlayer() > _enemy.Data.detectionRange)
+        if (_enemy.Player == null)
+        {
+            _enemy.StopMovement();
+            _enemy.SetState(new IdleState());
+            return;
+        }
+
+        bool isInRoomArena = _enemy.transform.parent != null && _enemy.transform.parent.GetComponent<RoomController>() != null;
+
+        if (!isInRoomArena && _enemy.DistanceToPlayer() > _enemy.Data.detectionRange)
         {
             _enemy.SetState(new IdleState());
             return;
@@ -19,7 +30,7 @@ public class ChaseState : IEnemyState
 
         if (_enemy.DistanceToPlayer() <= _enemy.Data.attackRange)
         {
-            _enemy.SetState(_enemy.GetAttackState()); // ← НОВОЕ
+            _enemy.SetState(_enemy.GetAttackState());
             return;
         }
 

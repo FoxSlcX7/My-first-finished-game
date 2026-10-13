@@ -7,83 +7,55 @@ public enum RoomRole { Safe, Combat, Chest, Stairs, Boss }
 [RequireComponent(typeof(BoxCollider2D))]
 public class RoomController : MonoBehaviour
 {
+    #region Inspector Settings
+
     [Tooltip("На сколько тайлов вглубь игрок должен зайти, чтобы комната активировалась.")]
     [SerializeField] private int activationInset = 2;
 
-    [Header("Поводок")]
-    [Tooltip("Скорость, с которой врага вытягивает обратно в комнату (должна быть выше скорости врагов).")]
-    [SerializeField] private float leashPullSpeed = 10f;
-    [Tooltip("Если врага унесло дальше этого расстояния — аварийный телепорт.")]
-    [SerializeField] private float hardLeashDistance = 2.5f;
+    #endregion
+
+    #region Public Events & State
 
     public event System.Action OnRoomCleared;
     public bool IsCleared => _cleared;
+    public HashSet<Vector2Int> DoorTiles => _doorTiles;
+    public static event System.Action<int> OnWaveEnemiesCountChanged;
+
+    /// <summary>Роль комнаты (Safe/Combat/Chest/Stairs/Boss) для отображения на миникарте.</summary>
+    public RoomRole Role => _role;
+
+    #endregion
+
+    #region Private Fields: Room & Dungeon Data
 
     private Room _room;
     private HashSet<Vector2Int> _globalFloor;
     private RoomRole _role;
     private DungeonConfigSO _config;
-    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
-
-    // Тайлы КОРИДОРА, где встают блокеры (внешняя сторона проёма)
-    private readonly HashSet<Vector2Int> _doorTiles = new();
-    private readonly List<GameObject> _blockers = new();
-    private readonly List<EnemyController> _waveEnemies = new();
-    private Coroutine _lockRoutine;
-    private int _aliveCount;
-    private int _remainingToSpawn;
-    private Coroutine _spawnRoutine;
     private bool _activated;
     private bool _cleared;
+
+    #endregion
+
+    #region Private Fields: Wave & Enemies
+
     private EnemyController[] _wavePrefabs;
+    private readonly List<EnemyController> _waveEnemies = new();
+    private Coroutine _spawnRoutine;
+    private int _remainingToSpawn;
+    private int _aliveCount;
 
-    // ═══════════════════════════════════════
-    // Поводок: волновые враги не могут покинуть арену,
-    // пока комната не зачищена
-    // ═══════════════════════════════════════
-    // ═══════════════════════════════════════
-    // Поводок: волновые враги не покидают арену.
-    // Летающих (сквозь стены) вытягиваем ПЛАВНО,
-    // телепорт — только как аварийная мера.
-    // ═══════════════════════════════════════
-    private void Update()
-    {
-        if (!_activated || _cleared) return;
+    #endregion
 
-        BoundsInt b = _room.Bounds;
+    #region Private Fields: Doors & Blockers
 
-        foreach (var enemy in _waveEnemies)
-        {
-            if (enemy == null) continue;
+    private readonly HashSet<Vector2Int> _doorTiles = new();
+    private readonly List<GameObject> _blockers = new();
+    private Coroutine _lockRoutine;
 
-            Vector2 pos = enemy.transform.position;
-            Vector2 clamped = ClampToRoom(pos, b);
+    #endregion
 
-            float distOut = Vector2.Distance(pos, clamped);
-            if (distOut < 0.01f) continue; // внутри комнаты — не трогаем
-
-            if (distOut > hardLeashDistance)
-            {
-                // унесло слишком далеко (например, сквозь стену) — аварийный возврат
-                enemy.transform.position = clamped;
-            }
-            else
-            {
-                // плавно тянем обратно: без рывков и визуальных телепортов
-                enemy.transform.position = Vector2.MoveTowards(pos, clamped, leashPullSpeed * Time.deltaTime);
-            }
-        }
-    }
-
-    /// <summary>
-    // Ближайшая точка внутри комнаты (непрерывные координаты, не центр тайла).
-    /// </summary>
-    private static Vector2 ClampToRoom(Vector2 pos, BoundsInt b)
-    {
-        return new Vector2(
-            Mathf.Clamp(pos.x, b.xMin, b.xMax),
-            Mathf.Clamp(pos.y, b.yMin, b.yMax));
-    }
+    #region 1. Initialization
 
     public void Init(Room room, HashSet<Vector2Int> globalFloor, RoomRole role, DungeonConfigSO config, EnemyController[] customWavePrefabs = null)
     {
@@ -92,26 +64,71 @@ public class RoomController : MonoBehaviour
         _role = role;
         _config = config;
         _wavePrefabs = (customWavePrefabs != null && customWavePrefabs.Length > 0) ? customWavePrefabs : config.wavePrefabs;
+        _wavePrefabs = FilterValidPrefabs(_wavePrefabs);
 
+        // Настройка триггера входа в комнату
         BoxCollider2D col = GetComponent<BoxCollider2D>();
         col.isTrigger = true;
         col.offset = new Vector2(_room.Bounds.center.x, _room.Bounds.center.y);
         col.size = new Vector2(_room.Bounds.size.x, _room.Bounds.size.y);
 
+        // Расчет точек дверных проемов
         ComputeDoors();
 
+        // Лестница на следующий этаж
         if (_role == RoomRole.Stairs && _config.stairsPrefab != null)
+        {
             Instantiate(_config.stairsPrefab, ToWorld(_room.Center), Quaternion.identity, transform);
+        }
 
-        // Спавним опасности биома (лаву / шипы)
+        // Спавн опасностей биома (лавовые лужи / шипы)
         SpawnBiomeHazards();
 
+        // Спавн разрушаемых объектов (ящики у стен и в углах)
         SpawnDestructibles();
     }
 
-    // ═══════════════════════════════════════
-    // Активация: игрок зашёл внутрь (не на кромке)
-    // ═══════════════════════════════════════
+    private void ComputeDoors()
+    {
+        Vector2Int[] dirs =
+        {
+            Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
+            new Vector2Int(1, 1), new Vector2Int(1, -1),
+            new Vector2Int(-1, 1), new Vector2Int(-1, -1)
+        };
+
+        foreach (var tile in _room.FloorPositions)
+        {
+            if (!_globalFloor.Contains(tile)) continue;
+
+            foreach (var d in dirs)
+            {
+                Vector2Int n = tile + d;
+
+                // Если тайл снаружи комнаты и это пол — это точка выхода/двери
+                if (_room.Bounds.Contains(new Vector3Int(n.x, n.y, 0))) continue;
+                if (!_globalFloor.Contains(n)) continue;
+
+                _doorTiles.Add(n);
+            }
+        }
+    }
+
+    #endregion
+
+    #region 2. Room Activation & Lifecycle
+
+    private void Update()
+    {
+        if (!_activated || _cleared) return;
+
+        // Пассивный сторожевой таймер: когда спавн завершен, проверяем отсутствие живых врагов
+        if (_remainingToSpawn <= 0)
+        {
+            CheckRoomCleared();
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D other) => TryActivate(other);
     private void OnTriggerStay2D(Collider2D other) => TryActivate(other);
 
@@ -140,50 +157,19 @@ public class RoomController : MonoBehaviour
     {
         Transform player = GameManager.Instance?.PlayerTransform;
         if (player == null) return false;
+
         int x = Mathf.FloorToInt(player.position.x);
         int y = Mathf.FloorToInt(player.position.y);
         BoundsInt b = _room.Bounds;
+
         return x >= b.xMin + activationInset && x <= b.xMax - 1 - activationInset
             && y >= b.yMin + activationInset && y <= b.yMax - 1 - activationInset;
     }
 
-    // ═══════════════════════════════════════
-    // Двери: 8 направлений — запечатываем и диагональные «ступеньки»
-    // на стыках комнаты с коридором
-    // ═══════════════════════════════════════
-    private void ComputeDoors()
-    {
-        Vector2Int[] dirs =
-        {
-        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right,
-        new Vector2Int(1, 1),  new Vector2Int(1, -1),
-        new Vector2Int(-1, 1), new Vector2Int(-1, -1)
-    };
+    #endregion
 
-        foreach (var tile in _room.FloorPositions)
-        {
-            if (!_globalFloor.Contains(tile)) continue;
+    #region 3. Wave & Enemy Management
 
-            foreach (var d in dirs)
-            {
-                Vector2Int n = tile + d;
-
-                // тайл снаружи комнаты и это пол → точка выхода
-                if (_room.Bounds.Contains(new Vector3Int(n.x, n.y, 0))) continue;
-                if (!_globalFloor.Contains(n)) continue;
-
-                _doorTiles.Add(n); // HashSet сам уберёт дубликаты, break не нужен
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════
-    // Волна: спавн только по финальному полу
-    // ═══════════════════════════════════════
-    // ═══════════════════════════════════════
-    // Волна выходит постепенно: батчами с интервалом.
-    // Зачистка = заспавнены ВСЕ и убиты ВСЕ.
-    // ═══════════════════════════════════════
     private void SpawnWave()
     {
         if (_wavePrefabs == null || _wavePrefabs.Length == 0)
@@ -199,6 +185,38 @@ public class RoomController : MonoBehaviour
 
         _remainingToSpawn = count;
         _spawnRoutine = StartCoroutine(SpawnWaveRoutine());
+    }
+
+    /// <summary>
+    /// Возвращает массив префабов без null-элементов (защита от битых ссылок).
+    /// </summary>
+    private static EnemyController[] FilterValidPrefabs(EnemyController[] prefabs)
+    {
+        if (prefabs == null || prefabs.Length == 0) return new EnemyController[0];
+
+        List<EnemyController> valid = new List<EnemyController>();
+        foreach (EnemyController p in prefabs)
+        {
+            if (p != null) valid.Add(p);
+        }
+        return valid.ToArray();
+    }
+
+    /// <summary>
+    /// Выбирает валидный префаб для спавна. Сначала случайный, при null — первый валидный.
+    /// </summary>
+    private EnemyController PickValidPrefab()
+    {
+        if (_wavePrefabs == null || _wavePrefabs.Length == 0) return null;
+
+        EnemyController chosen = _wavePrefabs[Random.Range(0, _wavePrefabs.Length)];
+        if (chosen != null) return chosen;
+
+        foreach (EnemyController p in _wavePrefabs)
+        {
+            if (p != null) return p;
+        }
+        return null;
     }
 
     private void SpawnBoss()
@@ -243,18 +261,21 @@ public class RoomController : MonoBehaviour
             {
                 SpawnOneEnemy();
             }
-            yield return new WaitForSeconds(_config.waveSpawnInterval);
+
+            CheckRoomCleared();
+
+            if (_remainingToSpawn > 0)
+            {
+                yield return new WaitForSeconds(_config.waveSpawnInterval);
+            }
         }
+
+        // Финальная проверка по окончании всех волн спавна
+        CheckRoomCleared();
     }
 
-    /// <summary>
-    // Спавн одного врага волны. Единственная точка спавна —
-    // сюда позже повесим VFX-портал появления.
-    // </summary>
     private void SpawnOneEnemy()
     {
-        _remainingToSpawn--;
-
         List<Vector2Int> tiles = new List<Vector2Int>(_room.FloorPositions);
         Vector2 playerPos = GameManager.Instance?.PlayerTransform != null
             ? (Vector2)GameManager.Instance.PlayerTransform.position
@@ -262,22 +283,66 @@ public class RoomController : MonoBehaviour
 
         Vector2 world = Vector2.zero;
         bool found = false;
-        for (int attempt = 0; attempt < 20; attempt++)
+
+        // 1. Поиск точки на безопасном расстоянии от игрока
+        for (int attempt = 0; attempt < 30; attempt++)
         {
             Vector2Int tile = tiles[Random.Range(0, tiles.Count)];
             if (!_globalFloor.Contains(tile)) continue;
 
             Vector2 candidate = ToWorld(tile);
-            if (Vector2.Distance(candidate, playerPos) >= _config.minWaveSpawnDistance)
+
+            if (Vector2.Distance(candidate, playerPos) < _config.minWaveSpawnDistance)
+                continue;
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(candidate, 0.4f);
+            bool isBlocked = false;
+            foreach (var hit in hits)
             {
-                world = candidate;
-                found = true;
+                if (hit.isTrigger) continue;
+                isBlocked = true;
                 break;
             }
+
+            if (isBlocked) continue;
+
+            world = candidate;
+            found = true;
+            break;
         }
+
+        // 2. Фолбэк: если безопасная точка не найдена, спавним на любой свободной клетке арены
+        if (!found)
+        {
+            foreach (var tile in tiles)
+            {
+                if (!_globalFloor.Contains(tile)) continue;
+                Vector2 candidate = ToWorld(tile);
+                Collider2D[] hits = Physics2D.OverlapCircleAll(candidate, 0.35f);
+                bool blocked = false;
+                foreach (var h in hits)
+                {
+                    if (!h.isTrigger) { blocked = true; break; }
+                }
+                if (!blocked)
+                {
+                    world = candidate;
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        _remainingToSpawn--;
         if (!found) return;
 
-        EnemyController prefab = _wavePrefabs[Random.Range(0, _wavePrefabs.Length)];
+        EnemyController prefab = PickValidPrefab();
+        if (prefab == null)
+        {
+            // Нет валидного префаба — пропускаем спавн (счётчик уже уменьшен выше)
+            return;
+        }
+
         EnemyController enemy = Instantiate(prefab, world, Quaternion.identity, transform);
 
         int floor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
@@ -285,6 +350,8 @@ public class RoomController : MonoBehaviour
         {
             enemy.ApplyBalance(_config.balanceConfig, floor);
         }
+
+        enemy.SetState(new ChaseState());
 
         enemy.Health.OnDeath += () => OnWaveEnemyDied(enemy);
         _waveEnemies.Add(enemy);
@@ -295,13 +362,29 @@ public class RoomController : MonoBehaviour
     {
         _waveEnemies.Remove(enemy);
         _aliveCount--;
-        if (_aliveCount <= 0 && _remainingToSpawn <= 0) ClearRoom();
+        CheckRoomCleared();
     }
 
-    // ═══════════════════════════════════════
-    // Блокировка: двери закрываются ТОЛЬКО когда все бойцы внутри,
-    // и блокер никогда не спавнится поверх существа
-    // ═══════════════════════════════════════
+    private void CheckRoomCleared()
+    {
+        if (_cleared) return;
+
+        _waveEnemies.RemoveAll(e => e == null || e.Health == null || e.Health.IsDead);
+        int totalRemaining = _remainingToSpawn + _waveEnemies.Count;
+
+        // Оповещаем UI о количестве оставшихся врагов
+        OnWaveEnemiesCountChanged?.Invoke(totalRemaining);
+
+        if (totalRemaining <= 0)
+        {
+            ClearRoom();
+        }
+    }
+
+    #endregion
+
+    #region 4. Doors & Arena Locking
+
     private IEnumerator LockDoors()
     {
         HashSet<Vector2Int> pending = new HashSet<Vector2Int>(_doorTiles);
@@ -317,7 +400,9 @@ public class RoomController : MonoBehaviour
                     if (!IsTileFree(world)) continue; // существо в проёме — ждём
 
                     if (_config.doorBlockerPrefab != null)
+                    {
                         _blockers.Add(Instantiate(_config.doorBlockerPrefab, world, Quaternion.identity, transform));
+                    }
                     placed.Add(door);
                 }
                 foreach (var p in placed) pending.Remove(p);
@@ -327,10 +412,6 @@ public class RoomController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    // Печатать арену можно, только когда игрок и все враги волны внутри —
-    // тогда никто не окажется вытолкнутым за дверь или запертым в блокере.
-    /// </summary>
     private bool AllCombatantsInside()
     {
         Transform player = GameManager.Instance?.PlayerTransform;
@@ -352,9 +433,6 @@ public class RoomController : MonoBehaviour
         return _room.Bounds.Contains(new Vector3Int(x, y, 0));
     }
 
-    /// <summary>
-    // Свободен ли тайл проёма: нет игрока и врагов в радиусе блокера.
-    /// </summary>
     private bool IsTileFree(Vector2 world)
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(world, 0.8f);
@@ -372,11 +450,15 @@ public class RoomController : MonoBehaviour
         if (_spawnRoutine != null) StopCoroutine(_spawnRoutine);
         _cleared = true;
 
+        // Открываем двери (уничтожаем блокеры)
         if (_lockRoutine != null) StopCoroutine(_lockRoutine);
         foreach (var blocker in _blockers)
+        {
             if (blocker != null) Destroy(blocker);
+        }
         _blockers.Clear();
 
+        // Спавн сундука в сокровищнице
         if (_role == RoomRole.Chest)
         {
             if (_config.chestPrefab != null)
@@ -390,6 +472,7 @@ public class RoomController : MonoBehaviour
             }
         }
 
+        // Завершение забега / спавн лестницы при победе над боссом
         if (_role == RoomRole.Boss)
         {
             int currentFloor = DungeonDirector.Instance != null ? DungeonDirector.Instance.Floor : 1;
@@ -406,12 +489,16 @@ public class RoomController : MonoBehaviour
             }
         }
 
+        OnWaveEnemiesCountChanged?.Invoke(0);
         OnRoomCleared?.Invoke();
     }
 
+    #endregion
+
+    #region 5. Biome Props & Hazards
+
     private void SpawnBiomeHazards()
     {
-        // Не спавним опасности в стартовой комнате
         if (_role == RoomRole.Safe) return;
 
         BiomeConfigSO currentBiome = DungeonDirector.Instance?.GetCurrentBiome();
@@ -426,10 +513,8 @@ public class RoomController : MonoBehaviour
 
         foreach (var tile in _room.FloorPositions)
         {
-            // Не ставим лужу прямо в центр (где сундук, алтарь или лестница)
             if (tile == center || tile == center + Vector2Int.right) continue;
 
-            // Не спавним лужу в дверных проходах, чтобы не блокировать вход
             bool nearDoor = false;
             foreach (var door in _doorTiles)
             {
@@ -467,24 +552,37 @@ public class RoomController : MonoBehaviour
 
         List<Vector2Int> candidates = new List<Vector2Int>();
         Vector2Int center = _room.Center;
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         foreach (var tile in _room.FloorPositions)
         {
-            // Не занимаем центр комнаты (алтари, сундуки)
-            if (Vector2Int.Distance(tile, center) < 2f) continue;
+            // Отступ от центра арены (алтари, сундуки)
+            if (Vector2Int.Distance(tile, center) < 3f) continue;
 
-            // Не перекрываем дверные проёмы
+            // Отступ от дверей минимум 3 тайла
             bool nearDoor = false;
             foreach (var door in _doorTiles)
             {
-                if (Vector2Int.Distance(tile, door) < 2.5f)
+                if (Vector2Int.Distance(tile, door) < 3f)
                 {
                     nearDoor = true;
                     break;
                 }
             }
+            if (nearDoor) continue;
 
-            if (!nearDoor) candidates.Add(tile);
+            // Спавним ТОЛЬКО у стен или в углах (минимум 1 сосед — стена)
+            int wallCount = 0;
+            foreach (var d in dirs)
+            {
+                if (!_globalFloor.Contains(tile + d))
+                    wallCount++;
+            }
+
+            if (wallCount >= 1)
+            {
+                candidates.Add(tile);
+            }
         }
 
         for (int i = 0; i < count && candidates.Count > 0; i++)
@@ -497,4 +595,12 @@ public class RoomController : MonoBehaviour
             Instantiate(currentBiome.destructiblePrefab, spawnPos, Quaternion.identity, transform);
         }
     }
+
+    #endregion
+
+    #region 6. Coordinate Helpers
+
+    private static Vector2 ToWorld(Vector2Int tile) => new Vector2(tile.x + 0.5f, tile.y + 0.5f);
+
+    #endregion
 }

@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: Enemy_Slime
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDataSO
   enemyName: Slime
-  type: 0
+  type: 3
   maxHealth: 25
-  moveSpeed: 1.5
+  moveSpeed: 1.8
   acceleration: 10
   contactDamage: 15
   damageCooldown: 1.5
   detectionRange: 8
-  attackRange: 1.5
+  attackRange: 3.5
+  hitRadius: 0.7
   projectilePrefab: {fileID: 0}
   projectileSpeed: 8
   shootInterval: 2.5

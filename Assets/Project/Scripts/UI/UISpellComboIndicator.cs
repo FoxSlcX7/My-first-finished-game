@@ -5,7 +5,6 @@ using TMPro;
 public class UISpellComboIndicator : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private SpellCaster spellCaster;
     [SerializeField] private GameObject indicator;
     [SerializeField] private Image comboIcon;
     [SerializeField] private TextMeshProUGUI comboNameText;
@@ -22,27 +21,24 @@ public class UISpellComboIndicator : MonoBehaviour
     {
         GameEvents.OnComboStateChanged?.AddListener(OnComboStateChanged);
 
-        if (spellCaster != null)
+        // Подписываемся на статический ивент напрямую — ссылка в инспекторе не нужна
+        SpellCaster.OnComboReadyChanged += HandleComboReadyChanged;
+
+        if (SpellCaster.Instance != null && _currentCombo != null)
         {
-            spellCaster.OnComboReadyChanged += OnComboReadyChanged;
+            SetReadyVisual(SpellCaster.Instance.IsComboReady());
         }
     }
 
     private void OnDisable()
     {
         GameEvents.OnComboStateChanged?.RemoveListener(OnComboStateChanged);
-
-        if (spellCaster != null)
-        {
-            spellCaster.OnComboReadyChanged -= OnComboReadyChanged;
-        }
+        SpellCaster.OnComboReadyChanged -= HandleComboReadyChanged;
     }
 
-    // Вызывается когда меняется пара заклинаний в слотах
     private void OnComboStateChanged(SpellComboSO combo)
     {
         _currentCombo = combo;
-
         bool hasCombo = combo != null;
 
         if (indicator != null)
@@ -57,16 +53,15 @@ public class UISpellComboIndicator : MonoBehaviour
         if (hotkeyText != null)
             hotkeyText.text = hasCombo ? hotkeyLabel : string.Empty;
 
-        // Обновляем цвет в зависимости от готовности
         if (hasCombo)
         {
-            bool ready = spellCaster != null && spellCaster.IsComboReady();
+            // Проверяем готовность через синглтон
+            bool ready = SpellCaster.Instance != null && SpellCaster.Instance.IsComboReady();
             SetReadyVisual(ready);
         }
     }
 
-    // Вызывается когда комбо становится готово или уходит на кулдаун
-    private void OnComboReadyChanged(bool isReady)
+    private void HandleComboReadyChanged(bool isReady)
     {
         if (_currentCombo == null) return;
         SetReadyVisual(isReady);
@@ -78,7 +73,6 @@ public class UISpellComboIndicator : MonoBehaviour
 
         if (indicator != null)
         {
-            // Меняем цвет всех изображений внутри индикатора
             Image[] images = indicator.GetComponentsInChildren<Image>();
             foreach (Image img in images)
             {
@@ -90,8 +84,6 @@ public class UISpellComboIndicator : MonoBehaviour
             comboNameText.color = targetColor;
 
         if (hotkeyText != null)
-        {
             hotkeyText.color = ready ? Color.yellow : cooldownColor;
-        }
     }
 }

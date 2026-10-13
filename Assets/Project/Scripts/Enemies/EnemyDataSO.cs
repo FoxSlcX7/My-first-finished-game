@@ -1,6 +1,13 @@
 using UnityEngine;
 
-public enum EnemyType { Melee, Ranged, Flying }
+public enum EnemyType 
+{
+    Melee,    // Скелеты (ближний бой, замах)
+    Ranged,   // Маги (кайт, стрельба)
+    Flying,   // Летучие мыши (парение, укус)
+    Leaping,  // Слаймы (прыжки с приземлением)
+    Kamikaze  // Камикадзе (подрыв вблизи игрока)
+}
 
 [CreateAssetMenu(fileName = "EnemyData", menuName = "Arcane Arsenal/Enemy Data")]
 public class EnemyDataSO : ScriptableObject
@@ -16,9 +23,12 @@ public class EnemyDataSO : ScriptableObject
     public int contactDamage = 10;
     public float damageCooldown = 1f;
 
-    [Header("Detection")]
+    [Header("Detection & Combat Ranges")]
     public float detectionRange = 10f;
+    [Tooltip("Дистанция, с которой моб начинает атаку (для мага - стрельба, для слайма - прыжок, для скелета - замах)")]
     public float attackRange = 1.5f;
+    [Tooltip("Точный радиус пятна урона при ударе/приземлении")]
+    public float hitRadius = 0.8f;
 
     [Header("Ranged (только для type = Ranged)")]
     public GameObject projectilePrefab;
@@ -31,9 +41,7 @@ public class EnemyDataSO : ScriptableObject
     public Vector3 spriteScale = Vector3.one;
 
     [Header("Knockback")]
-    [Tooltip("0 = отлетает полностью, 1 = иммунитет")]
     [Range(0f, 1f)] public float knockbackResistance = 0f;
-    [Tooltip("Минимальный интервал между отбрасываниями (защита от спама)")]
     public float knockbackCooldown = 0.15f;
     public float knockbackStagger = 0.25f;
     public float contactKnockbackForce = 8f;

@@ -66,6 +66,7 @@ public class PlayerStats : MonoBehaviour
     // ═══════════════════════════════════════
 
     public float GetStat(StatType type) => GetOrCreate(type).GetValue();
+    public int GetStatInt(StatType type) => Mathf.RoundToInt(GetStat(type));
     public float GetStatBase(StatType type) => GetOrCreate(type).BaseValue;
     public Stat GetStatObject(StatType type) => GetOrCreate(type);
 
@@ -110,7 +111,18 @@ public class PlayerStats : MonoBehaviour
     public static int ScaleDamage(int baseDamage)
     {
         if (Instance == null) return baseDamage;
-        return Mathf.Max(1, Mathf.RoundToInt(baseDamage * Instance.GetStat(StatType.Damage)));
+
+        float damageMultiplier = Instance.GetStat(StatType.Damage);
+        float calculated = baseDamage * damageMultiplier;
+
+        // Расчет шанса и множителя крита
+        float critChance = Instance.CritChance;
+        if (critChance > 0f && Random.value < critChance)
+        {
+            calculated *= Instance.CritDamage;
+        }
+
+        return Mathf.Max(1, Mathf.RoundToInt(calculated));
     }
 
     /// <summary>Debug (клавиша V): разбивка статов с источниками модификаторов.</summary>
@@ -140,17 +152,19 @@ public class PlayerStats : MonoBehaviour
         return stat;
     }
 
-    // ═══════════════════════════════════════
-    // COMPAT-СЛОЙ: потребители (SpellCaster, PlayerController,
-    // Projectile) работают без правок. Уберём на Неделе 8.
-    // ═══════════════════════════════════════
+    // ═══════════════════════════════════════  
+    // Геймплейный фасад (Domain API)
+    // ═══════════════════════════════════════  
 
     public float DamageMultiplier => GetStat(StatType.Damage);
     public float MoveSpeedMultiplier => GetStat(StatType.MoveSpeed);
     public float CooldownMultiplier => Mathf.Max(0.2f, GetStat(StatType.Cooldown));
-    public int BonusProjectiles => Mathf.RoundToInt(GetStat(StatType.BonusProjectiles));
-    public int RicochetBounces => Mathf.RoundToInt(GetStat(StatType.RicochetBounces));
+    public int BonusProjectiles => GetStatInt(StatType.BonusProjectiles);
+    public int RicochetBounces => GetStatInt(StatType.RicochetBounces);
     public float LifeStealPercent => GetStat(StatType.LifeSteal);
-    public int ChainTargets => Mathf.RoundToInt(GetStat(StatType.ChainTargets));
+    public int ChainTargets => GetStatInt(StatType.ChainTargets);
     public float ChainDamagePercent => GetStat(StatType.ChainDamage);
+    public float Armor => Mathf.Clamp(GetStat(StatType.Armor), 0f, 0.85f);
+    public float CritChance => Mathf.Clamp01(GetStat(StatType.CritChance));
+    public float CritDamage => Mathf.Max(1f, GetStat(StatType.CritDamage));
 }

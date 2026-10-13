@@ -1,0 +1,10 @@
+Library/
+**/Library/**
+Temp/
+**/Temp/**
+Logs/
+UserSettings/
+**/UserSettings/**
+.vs/
+**/*.meta
+*.meta

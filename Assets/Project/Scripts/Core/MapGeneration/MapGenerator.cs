@@ -7,8 +7,8 @@ public class MapGenerator : MonoBehaviour
     public event System.Action OnMapGenerated;
 
     [Header("Размеры подземелья")]
-    [SerializeField] private int mapWidth = 80;
-    [SerializeField] private int mapHeight = 80;
+    [SerializeField] private int mapWidth = 140;
+    [SerializeField] private int mapHeight = 140;
 
     [Header("Настройки комнат")]
     [Tooltip("Количество комнат на этаже")]
@@ -16,11 +16,11 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private int roomCountMax = 8;
 
     [Tooltip("Минимальный и максимальный размер боевой комнаты (тайлы)")]
-    [SerializeField] private int roomMinSize = 12;
-    [SerializeField] private int roomMaxSize = 18;
+    [SerializeField] private int roomMinSize = 22;
+    [SerializeField] private int roomMaxSize = 28;
 
     [Tooltip("Минимальное расстояние между центрами комнат")]
-    [SerializeField] private int minDistanceBetweenRooms = 18;
+    [SerializeField] private int minDistanceBetweenRooms = 32;
 
     [Header("Ссылки")]
     [SerializeField] private MapVisualizer visualizer;
@@ -53,7 +53,7 @@ public class MapGenerator : MonoBehaviour
 
         CarveRooms();
         BuildRoomLookup();
-        ConnectRoomsSmarter(); // Умное соединение ближайших соседей
+        ConnectRoomsSmarter();
         FixDiagonalPinches();
         RemoveUnreachableFloor();
         GenerateWalls();
@@ -61,25 +61,25 @@ public class MapGenerator : MonoBehaviour
         visualizer.PaintFloor(_floorPositions);
         visualizer.PaintWalls(_wallPositions);
 
-        Debug.Log($"[MapGenerator] Готово! Пол: {_floorPositions.Count} тайлов, комнат: {_rooms.Count}");
+        Debug.Log($"[MapGenerator] Новая карта готова! Пол: {_floorPositions.Count} тайлов, комнат: {_rooms.Count}");
         OnMapGenerated?.Invoke();
     }
 
-    // ═══════════════════════════════════════
-    // 1. Создание просторных комнат
-    // ═══════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // 1. Создание разнообразных архитектурных комнат
+    // ═══════════════════════════════════════════════════════════
     private void CarveRooms()
     {
         int targetRooms = Random.Range(roomCountMin, roomCountMax + 1);
         List<Vector2Int> centers = new List<Vector2Int> { Vector2Int.zero };
 
         int attempts = 0;
-        int maxAttempts = 500;
+        int maxAttempts = 800;
 
         while (centers.Count < targetRooms && attempts < maxAttempts)
         {
             attempts++;
-            int padding = roomMaxSize;
+            int padding = roomMaxSize + 2;
             Vector2Int candidate = new Vector2Int(
                 Random.Range(_bounds.xMin + padding, _bounds.xMax - padding),
                 Random.Range(_bounds.yMin + padding, _bounds.yMax - padding));
@@ -100,31 +100,126 @@ public class MapGenerator : MonoBehaviour
         for (int i = 0; i < centers.Count; i++)
         {
             Vector2Int center = centers[i];
+            HashSet<Vector2Int> roomFloor;
 
-            // Первая комната (стартовая) чуть компактнее, остальные — просторные арены
-            int sizeX = (i == 0) ? 12 : Random.Range(roomMinSize, roomMaxSize + 1);
-            int sizeY = (i == 0) ? 12 : Random.Range(roomMinSize, roomMaxSize + 1);
-
-            int halfX = sizeX / 2;
-            int halfY = sizeY / 2;
-
-            HashSet<Vector2Int> roomFloor = new HashSet<Vector2Int>();
-
-            for (int x = -halfX; x <= halfX; x++)
+            if (i == 0)
             {
-                for (int y = -halfY; y <= halfY; y++)
-                {
-                    Vector2Int pos = center + new Vector2Int(x, y);
-                    pos.x = Mathf.Clamp(pos.x, _bounds.xMin + 1, _bounds.xMax - 2);
-                    pos.y = Mathf.Clamp(pos.y, _bounds.yMin + 1, _bounds.yMax - 2);
+                // Стартовая комната: компактный чистый зал 14x14
+                roomFloor = GenerateRectangleRoom(center, 14, 14, false);
+            }
+            else
+            {
+                // Боевые комнаты: случайный выбор интересного архетипа
+                int archetype = Random.Range(0, 3);
+                int sizeX = Random.Range(roomMinSize, roomMaxSize + 1);
+                int sizeY = Random.Range(roomMinSize, roomMaxSize + 1);
 
-                    roomFloor.Add(pos);
-                    _floorPositions.Add(pos);
+                switch (archetype)
+                {
+                    case 0:
+                        // Арена с 4 массивными колоннами для укрытий
+                        roomFloor = GenerateRectangleRoom(center, sizeX, sizeY, addPillars: true);
+                        break;
+                    case 1:
+                        // Крестообразный зал
+                        roomFloor = GenerateCrossRoom(center, sizeX, sizeY);
+                        break;
+                    default:
+                        // Колизей со скошенными углами
+                        roomFloor = GenerateOctagonRoom(center, sizeX, sizeY);
+                        break;
                 }
+            }
+
+            foreach (var pos in roomFloor)
+            {
+                _floorPositions.Add(pos);
             }
 
             _rooms.Add(new Room(center, roomFloor));
         }
+    }
+
+    // Архетип 1: Зал с 4 колоннами (укрытиями)
+    private HashSet<Vector2Int> GenerateRectangleRoom(Vector2Int center, int sizeX, int sizeY, bool addPillars)
+    {
+        HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
+        int halfX = sizeX / 2;
+        int halfY = sizeY / 2;
+
+        // Координаты колонн (отступ на 1/3 от центра)
+        int pillarOffsetX = Mathf.Max(3, halfX - 4);
+        int pillarOffsetY = Mathf.Max(3, halfY - 4);
+
+        for (int x = -halfX; x <= halfX; x++)
+        {
+            for (int y = -halfY; y <= halfY; y++)
+            {
+                // Если включены колонны — пропускаем блоки 2x2 под колонны
+                if (addPillars && sizeX >= 20 && sizeY >= 20)
+                {
+                    if (IsPillarTile(x, y, pillarOffsetX, pillarOffsetY))
+                        continue;
+                }
+
+                floor.Add(center + new Vector2Int(x, y));
+            }
+        }
+        return floor;
+    }
+
+    private bool IsPillarTile(int x, int y, int px, int py)
+    {
+        // 4 колонны размером 2x2 тайла
+        return (Mathf.Abs(x - px) <= 1 && Mathf.Abs(y - py) <= 1) ||
+               (Mathf.Abs(x + px) <= 1 && Mathf.Abs(y - py) <= 1) ||
+               (Mathf.Abs(x - px) <= 1 && Mathf.Abs(y + py) <= 1) ||
+               (Mathf.Abs(x + px) <= 1 && Mathf.Abs(y + py) <= 1);
+    }
+
+    // Архетип 2: Крестообразная арена
+    private HashSet<Vector2Int> GenerateCrossRoom(Vector2Int center, int sizeX, int sizeY)
+    {
+        HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
+        int halfX = sizeX / 2;
+        int halfY = sizeY / 2;
+        int thickX = Mathf.RoundToInt(sizeX * 0.45f) / 2;
+        int thickY = Mathf.RoundToInt(sizeY * 0.45f) / 2;
+
+        for (int x = -halfX; x <= halfX; x++)
+        {
+            for (int y = -halfY; y <= halfY; y++)
+            {
+                // Попадаем либо в горизонтальный рукав, либо в вертикальный
+                if (Mathf.Abs(x) <= thickX || Mathf.Abs(y) <= thickY)
+                {
+                    floor.Add(center + new Vector2Int(x, y));
+                }
+            }
+        }
+        return floor;
+    }
+
+    // Архетип 3: Восьмиугольный зал (Колизей со срезанными углами)
+    private HashSet<Vector2Int> GenerateOctagonRoom(Vector2Int center, int sizeX, int sizeY)
+    {
+        HashSet<Vector2Int> floor = new HashSet<Vector2Int>();
+        int halfX = sizeX / 2;
+        int halfY = sizeY / 2;
+        int cornerCut = Mathf.Max(3, Mathf.Min(halfX, halfY) / 2);
+
+        for (int x = -halfX; x <= halfX; x++)
+        {
+            for (int y = -halfY; y <= halfY; y++)
+            {
+                // Срезаем 4 внешних угла
+                int cornerDist = (halfX - Mathf.Abs(x)) + (halfY - Mathf.Abs(y));
+                if (cornerDist < cornerCut) continue;
+
+                floor.Add(center + new Vector2Int(x, y));
+            }
+        }
+        return floor;
     }
 
     private void BuildRoomLookup()
@@ -152,10 +247,9 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    // ═══════════════════════════════════════
-    // 2. Умное соединение (MST / Ближайшие соседи)
-    // Больше никаких бесконечных кишок через всю карту!
-    // ═══════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // 2. Умное соединение коридорами (MST + Loops)
+    // ═══════════════════════════════════════════════════════════
     private void ConnectRoomsSmarter()
     {
         if (_rooms.Count < 2) return;
@@ -163,7 +257,6 @@ public class MapGenerator : MonoBehaviour
         List<int> connected = new List<int> { 0 };
         List<int> unconnected = Enumerable.Range(1, _rooms.Count - 1).ToList();
 
-        // Соединяем дерево минимальных путей (Prim's algorithm)
         while (unconnected.Count > 0)
         {
             float shortestDist = float.MaxValue;
@@ -193,7 +286,7 @@ public class MapGenerator : MonoBehaviour
             else break;
         }
 
-        // Дополнительный луп (1 случайная перемычка), чтобы подземелье не было строго линейным
+        // 1 дополнительная перемычка (закольцовка), чтобы был выбор маршрута
         if (_rooms.Count >= 4)
         {
             int extraA = Random.Range(1, _rooms.Count / 2);
@@ -211,7 +304,7 @@ public class MapGenerator : MonoBehaviour
             if (!_roomAt.ContainsKey(t))
                 _floorPositions.Add(t);
 
-            // Делаем коридор шириной 3 тайла, чтобы игрок и мобы свободно расходились
+            // Коридор шириной 3 тайла
             Vector2Int[] nbs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
             foreach (var n in nbs)
             {

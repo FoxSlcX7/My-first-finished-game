@@ -9,8 +9,7 @@ public class SpellCaster : MonoBehaviour
     public static SpellCaster Instance { get; private set; }
 
     public event System.Action OnSpellCast;
-    public event System.Action<bool> OnComboReadyChanged;
-    /// <summary>Глобальное событие заряда комбо (A, B), 0..100. Не требует поиска игрока.</summary>
+    public static event System.Action<bool> OnComboReadyChanged;
     public static event System.Action<float, float> OnComboChargeChanged;
 
     private SpellSO _slotA;
@@ -158,6 +157,7 @@ public class SpellCaster : MonoBehaviour
         _chargeB = 0f;
         RaiseCharge();
         _wasComboReady = IsComboReady();
+        OnComboReadyChanged?.Invoke(false);
     }
 
     private void RaiseCharge() => OnComboChargeChanged?.Invoke(_chargeA, _chargeB);
